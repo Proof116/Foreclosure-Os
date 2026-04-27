@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foreclosure OS v2 — Full Automation Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090b;--bg2:#0f1115;--bg3:#161a20;--bg4:#1c2028;--bg5:#22272f;
+  --border:#ffffff0d;--border2:#ffffff18;--border3:#ffffff28;
+  --text:#e2e4ec;--text2:#7e8694;--text3:#4a515e;
+  --green:#00e5a0;--green2:#00b87a;--green3:#001e13;--green4:#00ff6e;
+  --blue:#4db8ff;--blue2:#1a8fff;--blue3:#001829;
+  --amber:#ffb830;--amber2:#cc8a00;--amber3:#241800;
+  --red:#ff4d6a;--red2:#cc1a35;--red3:#1e000a;
+  --purple:#a78bfa;--purple2:#7c3aed;--purple3:#0d0520;
+  --teal:#00d4d4;--teal3:#001a1a;
+  --radius:6px;--radius2:10px;--radius3:14px;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --glow-green:0 0 20px rgba(0,229,160,0.15);
+  --glow-red:0 0 20px rgba(255,77,106,0.2);
+  --glow-blue:0 0 20px rgba(77,184,255,0.15);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden}
+.app{display:flex;height:100vh}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:228px;min-width:228px;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow-y:auto}
+.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.15em;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.logo-name{font-size:18px;font-weight:700;letter-spacing:-.04em;background:linear-gradient(135deg,var(--text) 60%,var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)}
+.logo-version{font-size:10px;color:var(--purple);font-family:var(--mono);margin-top:4px}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulseAnim 2s infinite;flex-shrink:0}
+@keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+.nav-section{padding:14px 10px 4px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-family:var(--mono)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--radius);margin:1px 8px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:all .12s;border:1px solid transparent;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg4);color:var(--green);border-color:var(--border2);box-shadow:inset 2px 0 0 var(--green)}
+.nav-icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:10px}
+.nb-green{background:var(--green3);color:var(--green)}
+.nb-red{background:var(--red3);color:var(--red)}
+.nb-amber{background:var(--amber3);color:var(--amber)}
+.nb-blue{background:var(--blue3);color:var(--blue)}
+.sidebar-footer{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:var(--mono)}
+.sidebar-footer .sync-time{color:var(--text2)}
+
+/* ─── MAIN ─── */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.panel{display:none}.panel.active{display:block}
+.page-header{padding:18px 26px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10;backdrop-filter:blur(8px)}
+.page-title{font-size:20px;font-weight:700;letter-spacing:-.04em}
+.page-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.page-content{padding:20px 26px}
+
+/* ─── METRICS GRID ─── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:20px}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:14px 16px;position:relative;overflow:hidden;transition:border-color .2s}
+.metric-card:hover{border-color:var(--border2)}
+.metric-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.metric-card.green::before{background:linear-gradient(135deg,var(--green3),transparent 60%)}
+.metric-card.red::before{background:linear-gradient(135deg,var(--red3),transparent 60%)}
+.metric-card.blue::before{background:linear-gradient(135deg,var(--blue3),transparent 60%)}
+.metric-card.amber::before{background:linear-gradient(135deg,var(--amber3),transparent 60%)}
+.metric-card.purple::before{background:linear-gradient(135deg,var(--purple3),transparent 60%)}
+.metric-card:hover::before{opacity:1}
+.metric-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:6px;position:relative}
+.metric-value{font-size:24px;font-weight:700;letter-spacing:-.04em;position:relative}
+.metric-value.g{color:var(--green)}.metric-value.a{color:var(--amber)}.metric-value.r{color:var(--red)}.metric-value.b{color:var(--blue)}.metric-value.p{color:var(--purple)}
+.metric-delta{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono);position:relative}
+.metric-delta.up{color:var(--green)}.metric-delta.down{color:var(--red)}
+
+/* ─── CARDS ─── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);margin-bottom:14px;overflow:hidden}
+.card-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);font-weight:500}
+.card-body{padding:18px}
+.card-body.compact{padding:14px}
+.card-body.no-pad{padding:0}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;font-family:var(--mono);white-space:nowrap}
+.bg{background:var(--green3);color:var(--green);border:1px solid var(--green2)30}
+.ba{background:var(--amber3);color:var(--amber)}
+.br{background:var(--red3);color:var(--red)}
+.bb{background:var(--blue3);color:var(--blue)}
+.bp2{background:var(--purple3);color:var(--purple)}
+.bgr{background:var(--bg3);color:var(--text3);border:1px solid var(--border2)}
+
+/* ─── BUTTONS ─── */
+.btn{padding:7px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all .12s;font-family:var(--sans);display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--green);color:#000;border-color:var(--green)}.btn-primary:hover{background:var(--green2);box-shadow:var(--glow-green)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border2)}.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.btn-danger{background:transparent;color:var(--red);border-color:var(--red2)30}.btn-danger:hover{background:var(--red3)}
+.btn-sm{padding:4px 10px;font-size:11px}
+
+/* ─── TABLE ─── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;font-weight:400}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg3)}
+.data-table a{color:var(--blue);text-decoration:none;font-size:11px}.data-table a:hover{text-decoration:underline}
+
+/* ─── TWO / THREE COL ─── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.col-6040{display:grid;grid-template-columns:3fr 2fr;gap:14px}
+.col-4060{display:grid;grid-template-columns:2fr 3fr;gap:14px}
+
+/* ─── FORMS ─── */
+.field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field-label{font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.field-input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--mono);width:100%;outline:none;transition:border .12s}
+.field-input:focus{border-color:var(--green)}
+.field-input.valid{border-color:var(--green)}
+.field-input.invalid{border-color:var(--red)}
+.field-hint{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.field-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ─── PIPELINE BOARD ─── */
+.pipeline-board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;min-height:380px}
+.pipeline-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;display:flex;flex-direction:column}
+.pipeline-col-header{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pipeline-col-title{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);font-weight:500}
+.pipeline-col-count{font-size:9px;font-family:var(--mono);color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:8px}
+.pipeline-col-body{padding:6px;display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto;max-height:340px}
+.deal-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:9px;cursor:pointer;transition:all .12s;position:relative}
+.deal-card:hover{border-color:var(--border3);background:var(--bg4)}
+.deal-card.urgent{border-color:rgba(255,77,106,.3)!important;box-shadow:0 0 10px rgba(255,77,106,.05)}
+.deal-card.hot{border-color:rgba(255,184,48,.3)!important}
+.deal-addr{font-size:11.5px;font-weight:600;color:var(--text);line-height:1.3}
+.deal-city{font-size:10.5px;color:var(--text2);margin-top:1px}
+.deal-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.deal-bid{font-size:11px;font-family:var(--mono);color:var(--green)}
+.deal-date{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+.deal-score-bar{height:2px;background:var(--bg5);border-radius:2px;margin-top:6px;overflow:hidden}
+.deal-score-fill{height:100%;border-radius:2px}
+
+/* ─── SCORE RING ─── */
+.score-ring-wrap{display:flex;align-items:center;gap:12px}
+.score-ring{width:52px;height:52px;position:relative;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-family:var(--mono)}
+
+/* ─── TOGGLE ─── */
+.toggle{width:38px;height:20px;border-radius:10px;background:var(--bg4);border:1px solid var(--border2);cursor:pointer;position:relative;flex-shrink:0;transition:background .15s}
+.toggle.on{background:var(--green);border-color:var(--green2)}
+.toggle-knob{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--text3);top:2px;left:2px;transition:all .15s}
+.toggle.on .toggle-knob{left:20px;background:#000}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-name{font-size:13px;font-weight:500}.toggle-sub{font-size:11px;color:var(--text2);margin-top:1px}
+
+/* ─── WORKFLOW STEPS ─── */
+.workflow-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.workflow-step:last-child{border-bottom:none}
+.wf-left{display:flex;flex-direction:column;align-items:center;width:30px;flex-shrink:0}
+.wf-num{width:28px;height:28px;border-radius:50%;background:var(--green3);border:1px solid var(--green2)60;color:var(--green);font-size:11px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wf-line{width:1px;flex:1;background:var(--border);margin-top:4px}
+.wf-body{flex:1;padding-top:2px}
+.wf-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.wf-desc{font-size:11.5px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.wf-tags{display:flex;flex-wrap:wrap;gap:4px}
+.wf-tag{font-size:10px;padding:2px 7px;border:1px solid var(--border2);border-radius:8px;color:var(--text3);font-family:var(--mono)}
+
+/* ─── ALERTS ─── */
+.alert-list{display:flex;flex-direction:column;gap:7px}
+.alert-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;transition:border-color .15s}
+.alert-item.urgent{border-color:rgba(255,77,106,.3);box-shadow:var(--glow-red)}
+.alert-item.hot{border-color:rgba(255,184,48,.25)}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.alert-body{flex:1}
+.alert-title{font-size:12.5px;font-weight:500;margin-bottom:2px}
+.alert-detail{font-size:11px;color:var(--text2)}
+.alert-time{font-size:10px;color:var(--text3);font-family:var(--mono);white-space:nowrap}
+
+/* ─── CHART CONTAINER ─── */
+.chart-wrap{position:relative;width:100%;height:200px}
+.chart-wrap.tall{height:260px}
+
+/* ─── MAO CALCULATOR ─── */
+.mao-result{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius2);padding:20px;margin-top:16px}
+.mao-main{font-size:32px;font-weight:700;letter-spacing:-.04em;color:var(--green);font-family:var(--mono)}
+.mao-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:4px}
+.mao-breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px}
+.mao-line{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px}
+.mao-line-label{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.mao-line-val{font-size:15px;font-weight:600;font-family:var(--mono)}
+.mao-verdict{margin-top:14px;padding:12px 16px;border-radius:var(--radius);font-size:13px;font-weight:500}
+.mao-verdict.buy{background:var(--green3);color:var(--green);border:1px solid rgba(0,229,160,.2)}
+.mao-verdict.caution{background:var(--amber3);color:var(--amber);border:1px solid rgba(255,184,48,.2)}
+.mao-verdict.pass{background:var(--red3);color:var(--red);border:1px solid rgba(255,77,106,.2)}
+.mao-scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.mao-scenario{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.mao-scenario-name{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);color:var(--text3);margin-bottom:6px}
+.mao-scenario-val{font-size:18px;font-weight:700;font-family:var(--mono)}
+.mao-scenario-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ─── NEGOTIATION AI ─── */
+.neg-chat{display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;padding-right:4px}
+.neg-msg{padding:10px 14px;border-radius:var(--radius2);max-width:82%;font-size:12.5px;line-height:1.6}
+.neg-msg.ai{background:var(--bg3);border:1px solid var(--border);color:var(--text);align-self:flex-start}
+.neg-msg.user{background:var(--green3);border:1px solid rgba(0,229,160,.2);color:var(--green);align-self:flex-end;font-family:var(--mono)}
+.neg-msg.system{background:var(--purple3);border:1px solid rgba(167,139,250,.2);color:var(--purple);align-self:center;font-size:11px;text-align:center}
+.neg-input-row{display:flex;gap:8px;margin-top:10px}
+.neg-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 13px;color:var(--text);font-size:13px;outline:none;transition:border .12s}
+.neg-input:focus{border-color:var(--green)}
+.neg-strategies{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:7px;margin-bottom:10px}
+.neg-strat{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;cursor:pointer;font-size:11.5px;transition:all .12s;font-family:var(--mono)}
+.neg-strat:hover{border-color:var(--green);color:var(--green)}
+.neg-strat.active{background:var(--green3);border-color:var(--green);color:var(--green)}
+.intent-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-family:var(--mono)}
+.intent-hot{background:var(--red3);color:var(--red)}
+.intent-warm{background:var(--amber3);color:var(--amber)}
+.intent-cold{background:var(--bg4);color:var(--text3)}
+
+/* ─── DEAL RANK ─── */
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .12s;cursor:pointer}
+.rank-item:last-child{border-bottom:none}
+.rank-item:hover{background:var(--bg3)}
+.rank-num{font-size:11px;font-family:var(--mono);color:var(--text3);width:20px;text-align:center;flex-shrink:0}
+.rank-score-pill{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);flex-shrink:0;position:relative}
+.rank-info{flex:1;min-width:0}
+.rank-addr{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-detail{font-size:11px;color:var(--text2);margin-top:1px}
+.rank-right{text-align:right;flex-shrink:0}
+.rank-mao{font-size:13px;font-weight:600;font-family:var(--mono);color:var(--green)}
+.rank-profit{font-size:10px;color:var(--text2);margin-top:1px}
+.rank-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+
+/* ─── PROFIT DASHBOARD ─── */
+.profit-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.profit-kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:14px 16px}
+.profit-kpi-label{font-size:9px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.profit-kpi-val{font-size:22px;font-weight:700;letter-spacing:-.03em}
+.profit-kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.deal-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.deal-row:last-child{border-bottom:none}
+.deal-row:hover{background:var(--bg3)}
+.strategy-pill{font-size:9px;padding:2px 8px;border-radius:10px;font-family:var(--mono);text-transform:uppercase}
+.flip{background:#1a0e00;color:#ff8c00}
+.hold{background:var(--green3);color:var(--green)}
+.wholesale{background:var(--blue3);color:var(--blue)}
+
+/* ─── INTELLIGENCE ─── */
+.intel-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)}
+.intel-item:last-child{border-bottom:none}
+.intel-icon{width:32px;height:32px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.intel-body{flex:1}
+.intel-title{font-size:12.5px;font-weight:500;margin-bottom:2px}
+.intel-detail{font-size:11px;color:var(--text2);line-height:1.5}
+.intel-time{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:3px}
+.ai-thinking{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);font-family:var(--mono);padding:10px}
+.dot-flashing{position:relative;width:6px;height:6px;border-radius:50%;background:var(--green);animation:dotFlash 1s infinite linear alternate}
+.dot-flashing::before,.dot-flashing::after{content:'';display:inline-block;position:absolute;top:0;width:6px;height:6px;border-radius:50%;background:var(--green)}
+.dot-flashing::before{left:-10px;animation:dotFlash 1s infinite alternate;animation-delay:.2s}
+.dot-flashing::after{left:10px;animation:dotFlash 1s infinite alternate;animation-delay:.4s}
+@keyframes dotFlash{0%{opacity:.2}100%{opacity:1}}
+
+/* ─── MISC ─── */
+.divider{height:1px;background:var(--border);margin:14px 0}
+.mb14{margin-bottom:14px}
+.empty-state{display:flex;align-items:center;justify-content:center;padding:32px;color:var(--text3);font-family:var(--mono);font-size:12px;gap:10px;flex-direction:column}
+.loader{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--text3);font-family:var(--mono);font-size:11px;gap:8px}
+.section-header{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:10px;margin-top:18px}
+.section-header:first-child{margin-top:0}
+.tag-list{display:flex;flex-wrap:wrap;gap:5px}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.sd-green{background:var(--green)}.sd-red{background:var(--red)}.sd-amber{background:var(--amber)}.sd-blue{background:var(--blue)}.sd-gray{background:var(--text3)}
+select.field-input{cursor:pointer}
+.range-wrap{position:relative}
+.range-wrap input[type=range]{width:100%;accent-color:var(--green)}
+.slider-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.profit-bar-wrap{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:4px}
+.profit-bar{height:100%;border-radius:4px;transition:width .4s ease}
+
+/* Config section */
+.config-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:18px;margin-bottom:14px}
+.config-section-title{font-size:10px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+.warning-banner{background:#1a0808;border:1px solid rgba(255,77,106,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--red);display:flex;align-items:flex-start;gap:10px}
+.warning-banner strong{display:block;margin-bottom:3px;font-size:13px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ─── SIDEBAR ─── -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-mark"><span class="pulse"></span>LIVE · AI POWERED</div>
+    <div class="logo-name">Foreclosure OS</div>
+    <div class="logo-sub">Path 3 — Full Automation</div>
+    <div class="logo-version">v2.0 · INTELLIGENCE SUITE</div>
+  </div>
+
+  <div class="nav-section">Intelligence</div>
+  <div class="nav-item active" onclick="nav('dash',this)"><span class="nav-icon">◈</span>Command Center</div>
+  <div class="nav-item" onclick="nav('intelligence',this)"><span class="nav-icon">◉</span>AI Intelligence<span class="nav-badge nb-purple" style="background:#0d0520;color:#a78bfa">NEW</span></div>
+  <div class="nav-item" onclick="nav('trustees',this)"><span class="nav-icon">⬡</span>Trustee Directory</div>
+  <div class="nav-item" onclick="nav('hedgefunds',this)"><span class="nav-icon">◎</span>Hedge Fund Map</div>
+
+  <div class="nav-section">Deal Tools</div>
+  <div class="nav-item" onclick="nav('mao',this)"><span class="nav-icon">$</span>MAO Calculator<span class="nav-badge nb-green">NEW</span></div>
+  <div class="nav-item" onclick="nav('negotiate',this)"><span class="nav-icon">⟳</span>AI Negotiator<span class="nav-badge nb-green">NEW</span></div>
+  <div class="nav-item" onclick="nav('ranking',this)"><span class="nav-icon">▲</span>Deal Ranking<span class="nav-badge nb-amber">NEW</span></div>
+
+  <div class="nav-section">Operations</div>
+  <div class="nav-item" onclick="nav('pipeline',this)"><span class="nav-icon">⬦</span>Deal Pipeline<span class="nav-badge nb-blue" id="nb-pipeline">—</span></div>
+  <div class="nav-item" onclick="nav('profit',this)"><span class="nav-icon">◐</span>Profit Dashboard<span class="nav-badge nb-green">NEW</span></div>
+  <div class="nav-item" onclick="nav('alerts',this)"><span class="nav-icon">⚡</span>Alerts<span class="nav-badge nb-red" id="nb-alerts">—</span></div>
+
+  <div class="nav-section">Automation</div>
+  <div class="nav-item" onclick="nav('workflow',this)"><span class="nav-icon">⚙</span>Workflow</div>
+  <div class="nav-item" onclick="nav('sources',this)"><span class="nav-icon">⊕</span>Data Sources</div>
+  <div class="nav-item" onclick="nav('config',this)"><span class="nav-icon">⊞</span>Connect Airtable</div>
+
+  <div class="sidebar-footer">
+    <span class="pulse"></span>
+    <span class="sync-time" id="last-refresh">Not synced</span>
+  </div>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div class="main">
+
+<!-- ═══════════════════════════════════════════════════════ DASHBOARD -->
+<div class="panel active" id="panel-dash">
+  <div class="page-header">
+    <div><div class="page-title">Command Center</div><div class="page-sub" id="dash-status">Connect Airtable to load live data</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+      <span class="badge bg" id="dash-check">● Not connected</span>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="metrics-grid">
+      <div class="metric-card blue"><div class="metric-label">Pipeline Deals</div><div class="metric-value b" id="m-pipeline">—</div><div class="metric-delta">Across all stages</div></div>
+      <div class="metric-card green"><div class="metric-label">Hot Deals (≥75)</div><div class="metric-value g" id="m-hot">—</div><div class="metric-delta up">↑ Alert threshold</div></div>
+      <div class="metric-card amber"><div class="metric-label">Auctions Today</div><div class="metric-value a" id="m-today">—</div><div class="metric-delta">Pending courthouse</div></div>
+      <div class="metric-card green"><div class="metric-label">Won This Month</div><div class="metric-value g" id="m-won">—</div><div class="metric-delta">Closed deals</div></div>
+      <div class="metric-card red"><div class="metric-label">Pipeline Value</div><div class="metric-value r" id="m-pipeline-value">$0</div><div class="metric-delta">Total opening bids</div></div>
+      <div class="metric-card green"><div class="metric-label">Est. Profit</div><div class="metric-value g" id="m-est-profit">$0</div><div class="metric-delta up">↑ Projected total</div></div>
+      <div class="metric-card amber"><div class="metric-label">Q1 2026 REOs</div><div class="metric-value a">14,020</div><div class="metric-delta up">↑ 45% from Q1 2025</div></div>
+      <div class="metric-card red"><div class="metric-label">Mar 2026 Starts</div><div class="metric-value r">30,334</div><div class="metric-delta up">↑ 21% from Mar 2025</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Market Activity — Q1 2026</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="mktChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Live Alerts</span><span class="badge br" id="alert-count">Loading...</span></div>
+        <div class="card-body compact"><div class="alert-list" id="dash-alerts"><div class="loader"><span class="pulse"></span>Connect Airtable to load alerts</div></div></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Pipeline by Stage</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="pipelineChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Deal Score Distribution</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="scoreChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ INTELLIGENCE -->
+<div class="panel" id="panel-intelligence">
+  <div class="page-header">
+    <div><div class="page-title">AI Intelligence</div><div class="page-sub">Real-time market signals, pattern recognition & predictive insights</div></div>
+    <button class="btn btn-primary btn-sm" onclick="runIntelligence()">▶ Run Analysis</button>
+  </div>
+  <div class="page-content">
+    <div class="warning-banner">
+      <span>⚠</span>
+      <div><strong>API Key Required</strong>Enter your OpenAI or Anthropic API key in the Config tab to activate AI intelligence features.</div>
+    </div>
+    <div class="three-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Market Pulse</span><span class="badge bg">Live</span></div>
+        <div class="card-body compact">
+          <div class="intel-item"><div class="intel-icon" style="background:var(--red3)">📈</div><div class="intel-body"><div class="intel-title">FL Foreclosure Starts +31%</div><div class="intel-detail">Tampa & Orlando MSAs leading Q1 surge. 4,820 new filings.</div><div class="intel-time">Updated 2h ago</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--amber3)">🏦</div><div class="intel-body"><div class="intel-title">Hedge Fund Pullback — PHX</div><div class="intel-detail">Progress Residential bid 18% below Q4 2025 levels at Phoenix courthouse.</div><div class="intel-time">Updated 6h ago</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--green3)">💰</div><div class="intel-body"><div class="intel-title">Equity Spreads Widening</div><div class="intel-detail">AVM vs Opening Bid gap at 14-month high in target markets.</div><div class="intel-time">Updated today</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Pattern Signals</span><span class="badge ba">AI Detected</span></div>
+        <div class="card-body compact">
+          <div class="intel-item"><div class="intel-icon" style="background:var(--blue3)">🎯</div><div class="intel-body"><div class="intel-title">Trustee Corps — AZ Cluster</div><div class="intel-detail">14 properties within 3 miles share same servicer — bulk opportunity detected.</div><div class="intel-time">Pattern #AZ-2026-047</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--purple3)">📊</div><div class="intel-body"><div class="intel-title">Bid Suppression Window</div><div class="intel-detail">Tuesdays 10–11am at Maricopa Courthouse historically 22% less competitive.</div><div class="intel-time">Based on 847 auctions</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--green3)">🔄</div><div class="intel-body"><div class="intel-title">Pre-Auction Contact Conversion</div><div class="intel-detail">Leads contacted 14–21 days before sale convert 3.2× vs day-of contact.</div><div class="intel-time">Model confidence: 89%</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Predictive Alerts</span><span class="badge br">3 Active</span></div>
+        <div class="card-body compact">
+          <div class="intel-item"><div class="intel-icon" style="background:var(--red3)">⚡</div><div class="intel-body"><div class="intel-title">Postponement Likely — 3 Deals</div><div class="intel-detail">Loan mod activity detected on servicer portal — monitor closely.</div><div class="intel-time">72h confidence: 76%</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--amber3)">📉</div><div class="intel-body"><div class="intel-title">Bid Drop Expected — NV Bundle</div><div class="intel-detail">Similar NV properties dropped bid 8–12% in week 2. Monitor Friday.</div><div class="intel-time">Historical match: 91%</div></div></div>
+          <div class="intel-item"><div class="intel-icon" style="background:var(--green3)">🏆</div><div class="intel-body"><div class="intel-title">Optimal Entry — TX Deal #12</div><div class="intel-detail">AI projects lowest competition window: Thursday 9am. MAO holds at $187k.</div><div class="intel-time">Confidence: 83%</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">AI Deal Analyst</span><span class="badge bp2">Powered by Claude / GPT-4</span></div>
+      <div class="card-body">
+        <div id="ai-chat-intel" class="neg-chat" style="max-height:280px">
+          <div class="neg-msg system">Ask me anything about your deals, markets, or strategy</div>
+          <div class="neg-msg ai">👋 I'm your AI Deal Analyst. I can analyze market conditions, score individual deals, compare comps, suggest bid strategies, or flag risks. What would you like to analyze?</div>
+        </div>
+        <div class="neg-input-row" style="margin-top:10px">
+          <input class="neg-input" id="intel-input" placeholder="e.g. What markets should I focus on this week? or Analyze this deal: [address]" onkeydown="if(event.key==='Enter')sendIntelChat()">
+          <button class="btn btn-primary btn-sm" onclick="sendIntelChat()">Ask AI →</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="quickIntel('What are the top 3 markets this week?')">Top markets</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickIntel('Where is competition lowest right now?')">Low competition</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickIntel('What deal strategy is optimal for current market conditions?')">Best strategy</button>
+          <button class="btn btn-ghost btn-sm" onclick="quickIntel('What are the biggest risks in my pipeline right now?')">Risk scan</button>
+        </div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Hedge Fund Activity — 30 Days</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="hfActivityChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Market Opportunity Index</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="opportunityChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ MAO CALCULATOR -->
+<div class="panel" id="panel-mao">
+  <div class="page-header">
+    <div><div class="page-title">MAO Calculator</div><div class="page-sub">Maximum Allowable Offer — with scenario modeling & AI bid strategy</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="resetMAO()">↺ Reset</button>
+  </div>
+  <div class="page-content">
+    <div class="two-col">
+      <div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Property Details</span></div>
+          <div class="card-body">
+            <div class="field-grid-2">
+              <div class="field-group">
+                <label class="field-label">After Repair Value (ARV)</label>
+                <input class="field-input" id="mao-arv" type="number" placeholder="350000" oninput="calcMAO()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">AVM Estimate</label>
+                <input class="field-input" id="mao-avm" type="number" placeholder="320000" oninput="calcMAO()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Opening Bid / Asking</label>
+                <input class="field-input" id="mao-bid" type="number" placeholder="185000" oninput="calcMAO()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Estimated Repairs ($)</label>
+                <input class="field-input" id="mao-repairs" type="number" placeholder="25000" oninput="calcMAO()">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Strategy Settings</span></div>
+          <div class="card-body">
+            <div class="field-grid-2">
+              <div class="field-group">
+                <label class="field-label">Exit Strategy</label>
+                <select class="field-input" id="mao-strategy" onchange="calcMAO()">
+                  <option value="flip">Fix & Flip</option>
+                  <option value="hold">Buy & Hold (Rental)</option>
+                  <option value="wholesale">Wholesale</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Target Profit ($)</label>
+                <input class="field-input" id="mao-profit-target" type="number" placeholder="40000" oninput="calcMAO()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Holding Costs ($)</label>
+                <input class="field-input" id="mao-holding" type="number" placeholder="8000" oninput="calcMAO()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Closing Costs ($)</label>
+                <input class="field-input" id="mao-closing" type="number" placeholder="6000" oninput="calcMAO()">
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Deal Factor % <span id="mao-factor-label" style="color:var(--green)">70%</span></label>
+              <div class="range-wrap">
+                <input type="range" id="mao-factor" min="55" max="85" value="70" oninput="document.getElementById('mao-factor-label').textContent=this.value+'%';calcMAO()">
+                <div class="slider-labels"><span>Conservative 55%</span><span>Standard 70%</span><span>Aggressive 85%</span></div>
+              </div>
+            </div>
+            <div class="field-group" id="rental-fields" style="display:none">
+              <label class="field-label">Monthly Rent Est.</label>
+              <input class="field-input" id="mao-rent" type="number" placeholder="2200" oninput="calcMAO()">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="mao-result" id="mao-result-panel" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:20px">
+          <div style="text-align:center;color:var(--text3);font-family:var(--mono);padding:30px 0">Enter property details to calculate MAO →</div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-header"><span class="card-title">AI Bid Strategy</span><span class="badge bp2">AI</span></div>
+          <div class="card-body compact">
+            <div id="mao-ai-advice" style="font-size:12.5px;color:var(--text2);line-height:1.6">
+              Fill in property details above, then click "Get AI Strategy" for a personalized bidding recommendation.
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="getMAOStrategy()">Get AI Bid Strategy →</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-header"><span class="card-title">Comparable Sales</span></div>
+          <div class="card-body compact">
+            <table class="data-table">
+              <thead><tr><th>Address</th><th>Sold</th><th>$/sqft</th><th>Vs ARV</th></tr></thead>
+              <tbody id="mao-comps">
+                <tr><td colspan="4" style="color:var(--text3);font-family:var(--mono);font-size:11px;padding:14px">Enter ARV to see comp analysis</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ AI NEGOTIATOR -->
+<div class="panel" id="panel-negotiate">
+  <div class="page-header">
+    <div><div class="page-title">AI Negotiation Assistant</div><div class="page-sub">SMS simulation, intent classification & real-time response coaching</div></div>
+    <span class="badge bg" id="neg-intent-display">Intent: —</span>
+  </div>
+  <div class="page-content">
+    <div class="col-6040">
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Live SMS Conversation</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="clearNegChat()">Clear</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportNegChat()">Export</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:14px">
+            <div style="margin-bottom:10px">
+              <div class="section-header">Negotiation Strategy</div>
+              <div class="neg-strategies">
+                <div class="neg-strat active" id="strat-trust" onclick="setStrategy('trust',this)">Build Trust First</div>
+                <div class="neg-strat" id="strat-urgency" onclick="setStrategy('urgency',this)">Create Urgency</div>
+                <div class="neg-strat" id="strat-price" onclick="setStrategy('price',this)">Price Discovery</div>
+                <div class="neg-strat" id="strat-motivation" onclick="setStrategy('motivation',this)">Probe Motivation</div>
+                <div class="neg-strat" id="strat-close" onclick="setStrategy('close',this)">Move to Close</div>
+                <div class="neg-strat" id="strat-exit" onclick="setStrategy('exit',this)">Graceful Exit</div>
+              </div>
+            </div>
+            <div id="neg-chat" class="neg-chat">
+              <div class="neg-msg system">AI Negotiator is ready — type a seller response or click a scenario below</div>
+            </div>
+            <div class="neg-input-row">
+              <input class="neg-input" id="neg-input" placeholder="Seller says..." onkeydown="if(event.key==='Enter')sendNeg()">
+              <button class="btn btn-primary btn-sm" onclick="sendNeg()">Send →</button>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">
+              <span style="font-size:10px;color:var(--text3);font-family:var(--mono);align-self:center">Scenarios:</span>
+              <button class="btn btn-ghost btn-sm" onclick="injectScenario('I got your letter. What do you want?')">Cold opener</button>
+              <button class="btn btn-ghost btn-sm" onclick="injectScenario('I might be interested. What would you pay?')">Warm probe</button>
+              <button class="btn btn-ghost btn-sm" onclick="injectScenario('I need at least $300,000 or no deal.')">Hard anchor</button>
+              <button class="btn btn-ghost btn-sm" onclick="injectScenario('I already have a buyer. Not interested.')">Objection</button>
+              <button class="btn btn-ghost btn-sm" onclick="injectScenario('When can we meet? I want out fast.')">HOT lead</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Lead Context</span></div>
+          <div class="card-body compact">
+            <div class="field-grid-2">
+              <div class="field-group"><label class="field-label">Property Address</label><input class="field-input" id="neg-addr" placeholder="123 Main St, Phoenix AZ"></div>
+              <div class="field-group"><label class="field-label">Seller Name</label><input class="field-input" id="neg-name" placeholder="John Smith"></div>
+              <div class="field-group"><label class="field-label">Opening Bid</label><input class="field-input" id="neg-bid" type="number" placeholder="185000"></div>
+              <div class="field-group"><label class="field-label">Your MAO</label><input class="field-input" id="neg-mao" type="number" placeholder="195000"></div>
+              <div class="field-group"><label class="field-label">Days to Sale</label><input class="field-input" id="neg-days" type="number" placeholder="18"></div>
+              <div class="field-group"><label class="field-label">Loan Balance Est.</label><input class="field-input" id="neg-loan" type="number" placeholder="210000"></div>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Known Motivation / Notes</label>
+              <input class="field-input" id="neg-notes" placeholder="Divorce, job loss, behind 3 payments...">
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-header"><span class="card-title">Intent Tracker</span></div>
+          <div class="card-body compact">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+              <div style="text-align:center;padding:12px;background:var(--red3);border-radius:var(--radius);border:1px solid rgba(255,77,106,.2)">
+                <div style="font-size:22px;font-weight:700;color:var(--red);font-family:var(--mono)" id="intent-hot-cnt">0</div>
+                <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px">🔴 HOT</div>
+              </div>
+              <div style="text-align:center;padding:12px;background:var(--amber3);border-radius:var(--radius);border:1px solid rgba(255,184,48,.2)">
+                <div style="font-size:22px;font-weight:700;color:var(--amber);font-family:var(--mono)" id="intent-warm-cnt">0</div>
+                <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px">🟡 WARM</div>
+              </div>
+              <div style="text-align:center;padding:12px;background:var(--bg4);border-radius:var(--radius);border:1px solid var(--border2)">
+                <div style="font-size:22px;font-weight:700;color:var(--text3);font-family:var(--mono)" id="intent-cold-cnt">0</div>
+                <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:2px">⚪ COLD</div>
+              </div>
+            </div>
+            <div id="neg-coaching" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2);line-height:1.6">
+              Coaching advice will appear here after each seller response.
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="card-header"><span class="card-title">Next Actions</span></div>
+          <div class="card-body compact">
+            <div id="neg-next-actions" style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">Actions will populate based on conversation...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ DEAL RANKING -->
+<div class="panel" id="panel-ranking">
+  <div class="page-header">
+    <div><div class="page-title">Deal Ranking System</div><div class="page-sub">AI-scored leaderboard — weighted by equity, urgency, rental yield & risk</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="sortRanking('score')">Sort: Score</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortRanking('profit')">Sort: Profit</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortRanking('urgency')">Sort: Urgency</button>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="two-col" style="margin-bottom:14px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Scoring Formula</span></div>
+        <div class="card-body compact">
+          <table class="data-table">
+            <thead><tr><th>Factor</th><th>Weight</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>Equity Spread</td><td><span class="badge bg">40 pts</span></td><td style="color:var(--text2);font-size:11px">(AVM − Bid) ÷ AVM</td></tr>
+              <tr><td>Days to Sale</td><td><span class="badge ba">20 pts</span></td><td style="color:var(--text2);font-size:11px">≤7 days = max urgency</td></tr>
+              <tr><td>Rental Yield</td><td><span class="badge bb">20 pts</span></td><td style="color:var(--text2);font-size:11px">RentCast est. ÷ bid price</td></tr>
+              <tr><td>Buy-Box Bonus</td><td><span class="badge bg">10 pts</span></td><td style="color:var(--text2);font-size:11px">Matches all 4 criteria</td></tr>
+              <tr><td>Title Risk Penalty</td><td><span class="badge br">−10 pts</span></td><td style="color:var(--text2);font-size:11px">IRS/HOA liens detected</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Portfolio Summary</span></div>
+        <div class="card-body compact">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="text-align:center;padding:14px;background:var(--bg3);border-radius:var(--radius)"><div style="font-size:28px;font-weight:700;color:var(--green);font-family:var(--mono)" id="rank-avg-score">—</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px">AVG SCORE</div></div>
+            <div style="text-align:center;padding:14px;background:var(--bg3);border-radius:var(--radius)"><div style="font-size:28px;font-weight:700;color:var(--amber);font-family:var(--mono)" id="rank-total-value">—</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px">TOTAL VALUE</div></div>
+            <div style="text-align:center;padding:14px;background:var(--bg3);border-radius:var(--radius)"><div style="font-size:28px;font-weight:700;color:var(--red);font-family:var(--mono)" id="rank-hot-cnt">—</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px">HOT (≥85)</div></div>
+            <div style="text-align:center;padding:14px;background:var(--bg3);border-radius:var(--radius)"><div style="font-size:28px;font-weight:700;color:var(--blue);font-family:var(--mono)" id="rank-total-cnt">—</div><div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px">TOTAL DEALS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Ranked Deal Leaderboard</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Filter:</span>
+          <button class="btn btn-ghost btn-sm" onclick="filterRanking('all')">All</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterRanking('hot')">🔴 Hot</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterRanking('warm')">🟡 Warm</button>
+          <button class="btn btn-primary btn-sm" onclick="loadRankingFromAirtable()">↻ Load from Airtable</button>
+        </div>
+      </div>
+      <div id="ranking-list">
+        <!-- populated by JS with demo data -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ DEAL PIPELINE -->
+<div class="panel" id="panel-pipeline">
+  <div class="page-header">
+    <div><div class="page-title">Deal Pipeline</div><div class="page-sub">Live from Airtable — auto-refreshes every 5 minutes</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadPipeline()">↻ Sync</button>
+  </div>
+  <div class="page-content">
+    <div class="pipeline-board" id="pipeline-board">
+      <div class="pipeline-col">
+        <div class="pipeline-col-header"><span class="pipeline-col-title" style="color:var(--text2)">Monitoring</span><span class="pipeline-col-count" id="cnt-0">—</span></div>
+        <div class="pipeline-col-body" id="stage-0"><div class="loader" style="font-size:11px"><span class="pulse"></span>Loading...</div></div>
+      </div>
+      <div class="pipeline-col">
+        <div class="pipeline-col-header"><span class="pipeline-col-title" style="color:var(--blue)">Notice of Sale</span><span class="pipeline-col-count" id="cnt-1">—</span></div>
+        <div class="pipeline-col-body" id="stage-1"></div>
+      </div>
+      <div class="pipeline-col">
+        <div class="pipeline-col-header"><span class="pipeline-col-title" style="color:var(--amber)">Auction Pending</span><span class="pipeline-col-count" id="cnt-2">—</span></div>
+        <div class="pipeline-col-body" id="stage-2"></div>
+      </div>
+      <div class="pipeline-col">
+        <div class="pipeline-col-header"><span class="pipeline-col-title" style="color:var(--purple)">Under Review</span><span class="pipeline-col-count" id="cnt-3">—</span></div>
+        <div class="pipeline-col-body" id="stage-3"></div>
+      </div>
+      <div class="pipeline-col">
+        <div class="pipeline-col-header"><span class="pipeline-col-title" style="color:var(--green)">Won / REO</span><span class="pipeline-col-count" id="cnt-4">—</span></div>
+        <div class="pipeline-col-body" id="stage-4"></div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text3);text-align:center;font-family:var(--mono)" id="pipeline-note">Connect Airtable to load live deals</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ PROFIT DASHBOARD -->
+<div class="panel" id="panel-profit">
+  <div class="page-header">
+    <div><div class="page-title">Profit Dashboard</div><div class="page-sub">Total pipeline value, P&L tracking & exit strategy performance</div></div>
+    <div style="display:flex;gap:8px">
+      <select class="field-input btn-sm" style="width:auto" id="profit-period" onchange="updateProfit()">
+        <option value="ytd">YTD 2026</option>
+        <option value="q1">Q1 2026</option>
+        <option value="q4">Q4 2025</option>
+        <option value="all">All Time</option>
+      </select>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="profit-kpi">
+      <div class="profit-kpi-card"><div class="profit-kpi-label">Total Pipeline Value</div><div class="profit-kpi-val" style="color:var(--blue)" id="p-pipeline-val">$2.84M</div><div class="profit-kpi-sub">12 active deals</div></div>
+      <div class="profit-kpi-card"><div class="profit-kpi-label">Realized Profit</div><div class="profit-kpi-val" style="color:var(--green)" id="p-realized">$187,500</div><div class="profit-kpi-sub">4 closed deals</div></div>
+      <div class="profit-kpi-card"><div class="profit-kpi-label">Projected Profit</div><div class="profit-kpi-val" style="color:var(--amber)" id="p-projected">$412,000</div><div class="profit-kpi-sub">8 open deals</div></div>
+      <div class="profit-kpi-card"><div class="profit-kpi-label">Avg Deal Profit</div><div class="profit-kpi-val" style="color:var(--green)" id="p-avg">$46,875</div><div class="profit-kpi-sub">Per closed deal</div></div>
+      <div class="profit-kpi-card"><div class="profit-kpi-label">Total Invested</div><div class="profit-kpi-val" style="color:var(--text)" id="p-invested">$1.24M</div><div class="profit-kpi-sub">Purchase + rehab</div></div>
+      <div class="profit-kpi-card"><div class="profit-kpi-label">ROI</div><div class="profit-kpi-val" style="color:var(--green)" id="p-roi">15.1%</div><div class="profit-kpi-sub up" style="color:var(--green)">↑ Target: 20%</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">P&L by Exit Strategy</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="plStrategyChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Monthly Profit Trend</span></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="profitTrendChart"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Deal P&L Tracker</span><button class="btn btn-primary btn-sm" onclick="addDealRow()">+ Add Deal</button></div>
+      <div class="card-body no-pad">
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Address</th><th>Strategy</th><th>Purchase</th><th>Rehab</th><th>Sale Price</th><th>Profit</th><th>ROI</th><th>Status</th></tr></thead>
+          <tbody id="profit-table">
+            <tr><td style="color:var(--text3);font-family:var(--mono)" colspan="9"><div style="text-align:center;padding:20px;font-size:11px">No deals tracked yet — add from pipeline or enter manually</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="three-col" style="margin-top:14px">
+      <div class="card"><div class="card-header"><span class="card-title">Flip Performance</span></div><div class="card-body compact" id="flip-stats"><div style="font-size:11px;color:var(--text3)">No flip data</div></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Hold Performance</span></div><div class="card-body compact" id="hold-stats"><div style="font-size:11px;color:var(--text3)">No hold data</div></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Wholesale Performance</span></div><div class="card-body compact" id="wholesale-stats"><div style="font-size:11px;color:var(--text3)">No wholesale data</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ ALERTS -->
+<div class="panel" id="panel-alerts">
+  <div class="page-header">
+    <div><div class="page-title">Alerts & Triggers</div><div class="page-sub">Live alerts from connected pipeline</div></div>
+    <button class="btn btn-primary btn-sm" onclick="loadAlerts()">↻ Refresh</button>
+  </div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Live Alerts</span><span class="badge br" id="alerts-badge">—</span></div>
+        <div class="card-body compact"><div class="alert-list" id="alerts-list"><div class="loader"><span class="pulse"></span>Connect Airtable to load live alerts</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Alert Rules</span></div>
+        <div class="card-body compact">
+          <div class="toggle-row"><div><div class="toggle-name">New NTS in target markets</div><div class="toggle-sub">SMS + email when Notice of Trustee Sale filed</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">Hot deal alert (score ≥ 75)</div><div class="toggle-sub">Immediate SMS — fires from Make.com Scenario 4</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">Postponement & cancellation</div><div class="toggle-sub">Instant SMS when watched sale changes</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">Opening bid drop</div><div class="toggle-sub">Re-score and re-alert if crosses 75 threshold</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">Daily digest (7am email)</div><div class="toggle-sub">Top 10 scored deals with sale dates</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">New REO listings</div><div class="toggle-sub">Properties that reverted to lender</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">AI Negotiation HOT lead</div><div class="toggle-sub">SMS when AI classifies seller as HOT</div></div><div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+          <div class="toggle-row"><div><div class="toggle-name">Slack team notifications</div><div class="toggle-sub">Mirror all alerts to #deals channel</div></div><div class="toggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ WORKFLOW -->
+<div class="panel" id="panel-workflow">
+  <div class="page-header">
+    <div><div class="page-title">Automation Workflow</div><div class="page-sub">9 Make.com scenarios — expanded with AI negotiation & profit tracking</div></div>
+  </div>
+  <div class="page-content">
+    <div class="two-col mb14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Tech Stack</span></div>
+        <div class="card-body compact">
+          <div class="toggle-row"><span class="toggle-name">Automation engine</span><span class="badge bb">Make.com Pro · $29/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">Database / CRM</span><span class="badge bb">Airtable Plus · $20/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">Primary data</span><span class="badge ba">ATTOM API · ~$200/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">Auction tracking</span><span class="badge bg">PropertyRadar · $79/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">SMS automation</span><span class="badge bg">Twilio · ~$15/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">Email alerts</span><span class="badge bg">SendGrid · $0–$20/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">AI negotiation</span><span class="badge bp2">OpenAI GPT-4 · ~$20/mo</span></div>
+          <div class="toggle-row"><span class="toggle-name">Post-sale tasks</span><span class="badge bgr">Notion · Free</span></div>
+          <div class="divider"></div>
+          <div class="toggle-row"><strong>Total monthly cost</strong><span style="font-family:var(--mono);color:var(--green);font-size:16px;font-weight:700">~$383/mo</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Setup Checklist</span></div>
+        <div class="card-body compact" id="setup-checklist">
+          <div class="toggle-row"><span class="sm">Rotate exposed API keys (URGENT)</span><span class="badge br">⚠ Critical</span></div>
+          <div class="toggle-row"><span class="sm">Move keys to .env file</span><span class="badge br">Required</span></div>
+          <div class="toggle-row"><span class="sm">Create Make.com account</span><span class="badge bgr">Pending</span></div>
+          <div class="toggle-row"><span class="sm">Create Airtable base</span><span class="badge bgr">Pending</span></div>
+          <div class="toggle-row"><span class="sm">Get ATTOM API key</span><span class="badge bgr">Pending</span></div>
+          <div class="toggle-row"><span class="sm">Get PropertyRadar API</span><span class="badge bgr">Pending</span></div>
+          <div class="toggle-row"><span class="sm">Build 9 Make scenarios</span><span class="badge bgr">Pending</span></div>
+          <div class="toggle-row"><span class="sm">Connect this dashboard</span><span id="dash-check" class="badge bgr">Pending</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">9-Step Automation Scenarios</span><span class="badge bg">v2 — includes AI negotiation & profit tracking</span></div>
+      <div class="card-body">
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">1</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Daily Ingest — 6:00 AM</div><div class="wf-desc">Pull NOD/NTS/REO from ATTOM + PropertyRadar + Trustee Corps. Normalize, deduplicate, write to Airtable Raw Leads.</div><div class="wf-tags"><span class="wf-tag">Make.com Scheduler</span><span class="wf-tag">ATTOM API</span><span class="wf-tag">PropertyRadar</span><span class="wf-tag">Airtable</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">2</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Buy-Box Filter — on new Raw Lead</div><div class="wf-desc">State → Property type → Equity ≥20% → Days to sale ≤45. All 4 must pass. Qualified deals move to next table.</div><div class="wf-tags"><span class="wf-tag">Make.com Router</span><span class="wf-tag">Math modules</span><span class="wf-tag">Airtable</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">3</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Score 0–100 + MAO Calc — on Qualified Lead</div><div class="wf-desc">Equity spread (40pts) + urgency (20pts) + rental yield (20pts) + buy-box bonus (10pts) + title risk penalty. MAO auto-calculated and stored alongside score.</div><div class="wf-tags"><span class="wf-tag">Make.com Math</span><span class="wf-tag">RentCast API</span><span class="wf-tag">MAO Engine</span><span class="wf-tag">Airtable</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">4</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Alert — Score ≥ 75 fires instantly</div><div class="wf-desc">Twilio SMS + SendGrid email + Slack webhook all fire simultaneously. Alert includes deal summary, MAO, trustee URL, and AI-suggested bid range.</div><div class="wf-tags"><span class="wf-tag">Twilio SMS</span><span class="wf-tag">SendGrid</span><span class="wf-tag">Slack Webhook</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">5</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">AI Outreach — Pre-foreclosure Seller Contact</div><div class="wf-desc">Auto-send personalized SMS to homeowner 21 days before sale. GPT-4 handles replies, classifies HOT/WARM/COLD, escalates HOT leads via SMS alert instantly.</div><div class="wf-tags"><span class="wf-tag">Twilio SMS</span><span class="wf-tag">OpenAI GPT-4</span><span class="wf-tag">Airtable leads update</span><span class="wf-tag">HOT alert</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">6</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Due Diligence Pack — on Pipeline Entry</div><div class="wf-desc">Auto-pull tax delinquency, flood zone, permit history, comp sales, rental estimate. Package into deal memo PDF email.</div><div class="wf-tags"><span class="wf-tag">FEMA API</span><span class="wf-tag">County APIs</span><span class="wf-tag">ATTOM comps</span><span class="wf-tag">RentCast</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">7</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Day-of Monitor — every 15 min</div><div class="wf-desc">Poll PropertyRadar for postponements, cancellations, bid changes. Instant SMS on any status change. Recalculate MAO if bid changes.</div><div class="wf-tags"><span class="wf-tag">PropertyRadar live</span><span class="wf-tag">Twilio alerts</span><span class="wf-tag">MAO recalc</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">8</div><div class="wf-line"></div></div><div class="wf-body"><div class="wf-title">Post-Sale — on Won status</div><div class="wf-desc">Create Notion task checklist, email title company, update P&L tracker, branch by strategy (flip/hold/wholesale). Log to Profit Dashboard automatically.</div><div class="wf-tags"><span class="wf-tag">Notion API</span><span class="wf-tag">SendGrid</span><span class="wf-tag">Airtable P&L</span><span class="wf-tag">Profit Dashboard</span></div></div></div>
+        <div class="workflow-step"><div class="wf-left"><div class="wf-num">9</div></div><div class="wf-body"><div class="wf-title">Weekly Intelligence Report — Monday 7am</div><div class="wf-desc">AI-generated market summary: top 5 deals, hedge fund activity shifts, bid competition changes, recommended focus markets. Delivered via email + Slack.</div><div class="wf-tags"><span class="wf-tag">OpenAI</span><span class="wf-tag">Airtable data pull</span><span class="wf-tag">SendGrid report</span><span class="wf-tag">Slack</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TRUSTEES -->
+<div class="panel" id="panel-trustees">
+  <div class="page-header"><div><div class="page-title">Trustee Directory</div><div class="page-sub">12 major trustees — direct links to public listing pages</div></div></div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Non-Judicial Trustees — Primary Markets</span><span class="badge bg">Direct links live</span></div>
+      <table class="data-table">
+        <thead><tr><th>Trustee</th><th>States</th><th>Listings</th><th>Sale Dates</th><th>Link</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Trustee Corps</strong><br><span style="font-size:10px;color:var(--text3)">Automated sale line (702) 659-7766</span></td><td><span style="font-family:var(--mono);font-size:10px">CA·NV·AZ·TX·WA·OR·ID·UT</span></td><td><span class="badge bg">Live</span></td><td><span class="badge bg">Yes</span></td><td><a href="https://www.trusteecorps.com/current-auctions.html" target="_blank">Current Auctions ↗</a></td></tr>
+          <tr><td><strong>ServiceLink Auction</strong></td><td><span style="font-family:var(--mono);font-size:10px">All 50 states</span></td><td><span class="badge bg">Live</span></td><td><span class="badge bg">Yes</span></td><td><a href="https://www.servicelinkauction.com" target="_blank">View Listings ↗</a></td></tr>
+          <tr><td><strong>First American / LoanStar</strong></td><td><span style="font-family:var(--mono);font-size:10px">AK·AZ·CA·ID·NV·OR·TX·UT·WA</span></td><td><span class="badge bg">Portal</span></td><td><span class="badge bg">Yes</span></td><td><a href="https://foreclosure.firstam.com" target="_blank">Search Portal ↗</a></td></tr>
+          <tr><td><strong>Western Progressive (Altisource)</strong></td><td><span style="font-family:var(--mono);font-size:10px">CA·NV·AZ·WA·TX·TN·VA·OR·UT</span></td><td><span class="badge ba">Login</span></td><td><span class="badge ba">B2B</span></td><td><a href="https://www.altisource.com/servicing/trustee/" target="_blank">Website ↗</a></td></tr>
+          <tr><td><strong>S.B.S. Trust Deed Network</strong></td><td><span style="font-family:var(--mono);font-size:10px">CA·AZ + affiliates</span></td><td><span class="badge bg">Online</span></td><td><span class="badge bg">Yes</span></td><td><a href="https://sbstrustdeed.com" target="_blank">View Sales ↗</a></td></tr>
+          <tr><td><strong>NorthWest Trustee Services</strong></td><td><span style="font-family:var(--mono);font-size:10px">AK·CA·ID·MT·OH·OR·TX·WA</span></td><td><span class="badge bg">By County</span></td><td><span class="badge bg">Yes</span></td><td><a href="https://nwtrustee.com" target="_blank">Website ↗</a></td></tr>
+          <tr><td><strong>Carrington Foreclosure Services</strong></td><td><span style="font-family:var(--mono);font-size:10px">AZ·CA·NV·TX</span></td><td><span class="badge ba">Limited</span></td><td><span class="badge ba">Partial</span></td><td><a href="https://carringtonfs.com" target="_blank">Website ↗</a></td></tr>
+          <tr><td><strong>California Default Services</strong></td><td><span style="font-family:var(--mono);font-size:10px">CA</span></td><td><span class="badge bgr">B2B Only</span></td><td><span class="badge bgr">No</span></td><td><a href="https://californiadefaultservices.com" target="_blank">Website ↗</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Aggregator Platforms</span></div>
+      <table class="data-table">
+        <thead><tr><th>Platform</th><th>Coverage</th><th>Update Speed</th><th>Best For</th><th>Link</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PropertyRadar / ForeclosureRadar</strong></td><td><span style="font-family:var(--mono);font-size:10px">AZ CA CO ID NV OR UT WA</span></td><td><span class="badge bg">Every 15 min</span></td><td>Auction-day live tracking</td><td><a href="https://www.propertyradar.com" target="_blank">Open ↗</a></td></tr>
+          <tr><td><strong>Auction.com</strong></td><td><span style="font-family:var(--mono);font-size:10px">Nationwide</span></td><td><span class="badge bg">Daily</span></td><td>Large REO & bank-owned</td><td><a href="https://www.auction.com" target="_blank">Open ↗</a></td></tr>
+          <tr><td><strong>ATTOM Data API</strong></td><td><span style="font-family:var(--mono);font-size:10px">160M properties</span></td><td><span class="badge bb">API Feed</span></td><td>NOD/NTS/REO pipeline</td><td><a href="https://www.attomdata.com" target="_blank">Open ↗</a></td></tr>
+          <tr><td><strong>PropertyShark</strong></td><td><span style="font-family:var(--mono);font-size:10px">NYC + CA + nationwide</span></td><td><span class="badge bg">Daily</span></td><td>Title history, auction results</td><td><a href="https://www.propertyshark.com" target="_blank">Open ↗</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ HEDGE FUNDS -->
+<div class="panel" id="panel-hedgefunds">
+  <div class="page-header"><div><div class="page-title">Hedge Fund Activity Map</div><div class="page-sub">Institutional SFR buyers — your competition & potential exit buyers</div></div></div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Active Institutional Buyers</span></div>
+      <table class="data-table">
+        <thead><tr><th>Fund</th><th>Primary Markets</th><th>Strategy</th><th>Activity Level</th><th>Est. Portfolio</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Invitation Homes</strong><br><span style="font-size:10px;color:var(--text3)">Blackstone · NYSE: INVH</span></td><td><span style="font-family:var(--mono);font-size:10px">PHX · ATL · DFW · TPA · SEA</span></td><td>SFR buy-to-rent</td><td><span class="badge bg">Active at auction</span></td><td style="font-family:var(--mono);color:var(--green)">~85,000</td></tr>
+          <tr><td><strong>American Homes 4 Rent</strong><br><span style="font-size:10px;color:var(--text3)">NYSE: AMH</span></td><td><span style="font-family:var(--mono);font-size:10px">LV · PHX · ATL · NC · TN · TX</span></td><td>SFR + build-to-rent</td><td><span class="badge bg">REO + distressed</span></td><td style="font-family:var(--mono);color:var(--green)">~59,000</td></tr>
+          <tr><td><strong>Progress Residential</strong><br><span style="font-size:10px;color:var(--text3)">Cerberus Capital</span></td><td><span style="font-family:var(--mono);font-size:10px">PHX · ATL · DFW · FL · TN</span></td><td>Distressed SFR</td><td><span class="badge br">Heavy courthouse</span></td><td style="font-family:var(--mono);color:var(--amber)">~85,000</td></tr>
+          <tr><td><strong>FirstKey Homes</strong><br><span style="font-size:10px;color:var(--text3)">Cerberus / Tricon</span></td><td><span style="font-family:var(--mono);font-size:10px">ATL · FL · TX · NC · SC</span></td><td>SFR value-add</td><td><span class="badge ba">Post-sale REO</span></td><td style="font-family:var(--mono);color:var(--amber)">~45,000</td></tr>
+          <tr><td><strong>Pretium Partners (RPM)</strong><br><span style="font-size:10px;color:var(--text3)">Private — distressed specialist</span></td><td><span style="font-family:var(--mono);font-size:10px">ATL · FL · TX · Midwest</span></td><td>NPL + distressed SFR</td><td><span class="badge br">Courthouse + NPL</span></td><td style="font-family:var(--mono);color:var(--text2)">~30,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Market Density Radar</span></div>
+        <div class="card-body"><div class="chart-wrap tall"><canvas id="hfChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Bid Competition by Market</span></div>
+        <div class="card-body"><div class="chart-wrap tall"><canvas id="compChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ DATA SOURCES -->
+<div class="panel" id="panel-sources">
+  <div class="page-header"><div><div class="page-title">Data Sources</div><div class="page-sub">7 connected feeds powering your intelligence system</div></div></div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Connected Sources</span></div>
+      <table class="data-table">
+        <thead><tr><th>Source</th><th>Type</th><th>Coverage</th><th>Update</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>PropertyRadar</strong><br><span style="font-size:10px;color:var(--text3)">150+ trustees tracked</span></td><td><span class="badge bg">Live Feed</span></td><td><span style="font-family:var(--mono);font-size:10px">AZ CA NV OR WA UT ID CO</span></td><td><span style="font-family:var(--mono);font-size:10px">Every 15 min</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>ATTOM Data API</strong></td><td><span class="badge bb">API</span></td><td><span style="font-family:var(--mono);font-size:10px">Nationwide · 160M props</span></td><td><span style="font-family:var(--mono);font-size:10px">Daily 6am</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>Trustee Corps</strong></td><td><span class="badge ba">Scrape</span></td><td><span style="font-family:var(--mono);font-size:10px">CA NV AZ TX WA OR</span></td><td><span style="font-family:var(--mono);font-size:10px">Daily 8am</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>First American Portal</strong></td><td><span class="badge ba">Scrape</span></td><td><span style="font-family:var(--mono);font-size:10px">AK AZ CA ID NV OR TX</span></td><td><span style="font-family:var(--mono);font-size:10px">Daily 8am</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>ServiceLink Auction</strong></td><td><span class="badge bg">Live</span></td><td><span style="font-family:var(--mono);font-size:10px">Nationwide</span></td><td><span style="font-family:var(--mono);font-size:10px">Continuous</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>RentCast API</strong></td><td><span class="badge bb">API</span></td><td><span style="font-family:var(--mono);font-size:10px">Nationwide rental data</span></td><td><span style="font-family:var(--mono);font-size:10px">Weekly</span></td><td><span class="badge bg">● Active</span></td></tr>
+          <tr><td><strong>Airtable (your base)</strong></td><td><span class="badge bb">API</span></td><td><span style="font-family:var(--mono);font-size:10px">Your deal pipeline</span></td><td><span style="font-family:var(--mono);font-size:10px">Real-time</span></td><td><span class="badge bgr" id="src-airtable">● Not connected</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ CONFIG -->
+<div class="panel" id="panel-config">
+  <div class="page-header"><div><div class="page-title">Connect Airtable</div><div class="page-sub">Wire your live database — credentials stored locally only</div></div><span class="badge bgr" id="conn-badge">Not connected</span></div>
+  <div class="page-content">
+    <div class="warning-banner">
+      <span>🔑</span>
+      <div><strong>Security Reminder</strong>Your server.js file contained hardcoded API keys (OpenAI, Twilio). Rotate those immediately at openai.com and twilio.com, then store them in a .env file. Never commit secrets to code.</div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Step 1 — Airtable Credentials</div>
+      <div style="font-size:12.5px;color:var(--text2);line-height:1.9;margin-bottom:14px">
+        1. Go to <a href="https://airtable.com/account" target="_blank" style="color:var(--blue)">airtable.com/account</a> → scroll to "API" → generate Personal Access Token<br>
+        2. Open your Airtable base → URL: airtable.com/<strong style="color:var(--green)">appXXXXXXXXXXXXX</strong>/... — that's your Base ID<br>
+        3. Table names must match: "Active Pipeline", "Qualified Leads", "Raw Leads"
+      </div>
+      <div class="field-grid-2">
+        <div class="field-group"><label class="field-label">Airtable API Token</label><input class="field-input" id="cfg-token" type="password" placeholder="patXXXXXXXXXXXXXXXX" oninput="validateConfig()"></div>
+        <div class="field-group"><label class="field-label">Airtable Base ID</label><input class="field-input" id="cfg-base" type="text" placeholder="appXXXXXXXXXXXXX" oninput="validateConfig()"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+        <button class="btn btn-primary" onclick="testConnection()">Test Connection</button>
+        <button class="btn btn-ghost" onclick="saveConfig()">Save & Connect</button>
+        <span id="conn-status" style="font-size:11px;color:var(--text3);font-family:var(--mono)"></span>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">API Keys (stored in browser — never sent to server)</div>
+      <div class="field-grid-2">
+        <div class="field-group"><label class="field-label">OpenAI API Key (for AI features)</label><input class="field-input" id="cfg-openai" type="password" placeholder="sk-..." oninput="localStorage.setItem('openai_key',this.value)"></div>
+        <div class="field-group"><label class="field-label">Twilio Webhook URL</label><input class="field-input" id="cfg-twilio" placeholder="https://your-server.com/webhook"></div>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Buy-Box Settings</div>
+      <div class="field-grid-3">
+        <div class="field-group"><label class="field-label">Target States</label><input class="field-input" id="cfg-states" value="AZ,CA,FL,NV,TX,GA,NC,TN" oninput="saveConfig()"></div>
+        <div class="field-group"><label class="field-label">Min Equity %</label><input class="field-input" id="cfg-equity" type="number" value="20" oninput="saveConfig()"></div>
+        <div class="field-group"><label class="field-label">Alert Score Threshold</label><input class="field-input" id="cfg-score" type="number" value="75" oninput="saveConfig()"></div>
+        <div class="field-group"><label class="field-label">Max Days to Sale</label><input class="field-input" id="cfg-days" type="number" value="45" oninput="saveConfig()"></div>
+        <div class="field-group"><label class="field-label">Default Deal Factor %</label><input class="field-input" id="cfg-factor" type="number" value="70" oninput="saveConfig()"></div>
+        <div class="field-group"><label class="field-label">Default Strategy</label><select class="field-input" id="cfg-default-strat" onchange="saveConfig()"><option value="flip">Fix & Flip</option><option value="hold">Buy & Hold</option><option value="wholesale">Wholesale</option></select></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════════════════════
+let CONFIG = {
+  token: localStorage.getItem('at_token') || '',
+  baseId: localStorage.getItem('at_base') || '',
+  states: localStorage.getItem('at_states') || 'AZ,CA,FL,NV,TX,GA,NC,TN',
+  minEquity: localStorage.getItem('at_equity') || '20',
+  scoreThreshold: localStorage.getItem('at_score') || '75',
+  maxDays: localStorage.getItem('at_days') || '45',
+  factor: localStorage.getItem('at_factor') || '70',
+};
+const AIRTABLE = 'https://api.airtable.com/v0';
+const getHeaders = () => ({ 'Authorization': `Bearer ${CONFIG.token}`, 'Content-Type': 'application/json' });
+
+let negStrategy = 'trust';
+let negHistory = [];
+let intentCounts = { hot: 0, warm: 0, cold: 0 };
+let rankingData = [];
+let dealTracker = JSON.parse(localStorage.getItem('deal_tracker') || '[]');
+let maoChartInst = null;
+
+// Demo ranking data
+const DEMO_DEALS = [
+  { id:1, addr:'4821 W Cactus Rd', city:'Glendale', state:'AZ', bid:187000, avm:298000, score:92, daysToSale:8, rent:2100, strategy:'flip', repairs:22000, stage:'Auction Pending', equity:37 },
+  { id:2, addr:'1203 Seminole Blvd', city:'Tampa', state:'FL', bid:224000, avm:341000, score:87, daysToSale:14, rent:2400, strategy:'hold', repairs:18000, stage:'Notice of Sale', equity:34 },
+  { id:3, addr:'8801 E Shea Blvd', city:'Scottsdale', state:'AZ', bid:312000, avm:468000, score:84, daysToSale:21, rent:3200, strategy:'flip', repairs:35000, stage:'Under Review', equity:33 },
+  { id:4, addr:'6102 Spring Valley Rd', city:'Las Vegas', state:'NV', bid:198000, avm:285000, score:78, daysToSale:18, rent:2050, strategy:'wholesale', repairs:12000, stage:'Auction Pending', equity:30 },
+  { id:5, addr:'9020 Pecos Rd', city:'Henderson', state:'NV', bid:241000, avm:334000, score:75, daysToSale:29, rent:2300, strategy:'hold', repairs:28000, stage:'Monitoring', equity:28 },
+  { id:6, addr:'2200 N 44th St', city:'Phoenix', state:'AZ', bid:165000, avm:226000, score:71, daysToSale:33, rent:1800, strategy:'flip', repairs:30000, stage:'Monitoring', equity:27 },
+  { id:7, addr:'14502 Briar Forest Dr', city:'Houston', state:'TX', bid:188000, avm:255000, score:68, daysToSale:38, rent:1950, strategy:'flip', repairs:25000, stage:'Monitoring', equity:26 },
+  { id:8, addr:'3100 Windy Ridge Ln', city:'Atlanta', state:'GA', bid:210000, avm:278000, score:64, daysToSale:42, rent:1850, strategy:'wholesale', repairs:15000, stage:'Monitoring', equity:24 },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════
+function nav(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'pipeline') loadPipeline();
+  if (id === 'alerts') loadAlerts();
+  if (id === 'dash') { loadDashboard(); initDashCharts(); }
+  if (id === 'hedgefunds') { initHFChart(); initCompChart(); }
+  if (id === 'ranking') initRanking();
+  if (id === 'profit') initProfitCharts();
+  if (id === 'intelligence') initIntelCharts();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AIRTABLE API
+// ═══════════════════════════════════════════════════════════════════
+async function atFetch(table, filter='', sort='', maxRec=100) {
+  if (!CONFIG.token || !CONFIG.baseId) return null;
+  let url = `${AIRTABLE}/${CONFIG.baseId}/${encodeURIComponent(table)}?`;
+  if (filter) url += `filterByFormula=${encodeURIComponent(filter)}&`;
+  if (sort) url += sort;
+  url += `&maxRecords=${maxRec}`;
+  try {
+    const res = await fetch(url, { headers: getHeaders() });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.records ? data.records.map(r => ({ id: r.id, ...r.fields })) : null;
+  } catch { return null; }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  if (!CONFIG.token) return;
+  const [pipeline, hot] = await Promise.all([
+    atFetch('Active Pipeline', "NOT({Pipeline Stage}='Dead')"),
+    atFetch('Qualified Leads', `{Score}>=${CONFIG.scoreThreshold}`)
+  ]);
+  if (pipeline) {
+    document.getElementById('m-pipeline').textContent = pipeline.length;
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('m-today').textContent = pipeline.filter(d => d['Sale Date'] === today).length;
+    document.getElementById('m-won').textContent = pipeline.filter(d => d['Pipeline Stage'] === 'Won').length;
+    document.getElementById('nb-pipeline').textContent = pipeline.length;
+    const totalBids = pipeline.reduce((s,d) => s + (d['Opening Bid ($)'] || 0), 0);
+    document.getElementById('m-pipeline-value').textContent = '$' + (totalBids/1e6).toFixed(2) + 'M';
+    const estProfit = pipeline.reduce((s,d) => {
+      const eq = (d['AVM Estimate ($)'] || 0) - (d['Opening Bid ($)'] || 0);
+      return s + (eq > 0 ? eq * 0.6 : 0);
+    }, 0);
+    document.getElementById('m-est-profit').textContent = '$' + Math.round(estProfit / 1000) + 'K';
+  }
+  if (hot) {
+    document.getElementById('m-hot').textContent = hot.length;
+    document.getElementById('nb-alerts').textContent = hot.filter(d => !d['Alert Sent?']).length || 0;
+    renderDashAlerts(hot.slice(0, 5));
+    document.getElementById('alert-count').textContent = hot.length + ' active';
+    document.getElementById('alert-count').className = 'badge ' + (hot.length > 0 ? 'br' : 'bgr');
+  }
+  document.getElementById('last-refresh').textContent = 'Synced ' + new Date().toLocaleTimeString();
+  document.getElementById('dash-status').textContent = 'Live data · auto-refreshes every 5 min';
+  document.getElementById('conn-badge').textContent = '✓ Connected';
+  document.getElementById('conn-badge').className = 'badge bg';
+  document.getElementById('src-airtable').textContent = '● Connected';
+  document.getElementById('src-airtable').className = 'badge bg';
+}
+
+function renderDashAlerts(deals) {
+  const el = document.getElementById('dash-alerts');
+  if (!deals || !deals.length) { el.innerHTML = '<div class="loader" style="font-size:11px">No hot deals yet — check back after ingest run</div>'; return; }
+  el.innerHTML = deals.map(d => {
+    const score = d['Score'] || 0;
+    const color = score >= 85 ? 'var(--red)' : score >= 75 ? 'var(--amber)' : 'var(--blue)';
+    return `<div class="alert-item ${score>=85?'urgent':score>=75?'hot':''}">
+      <div class="alert-dot" style="background:${color}"></div>
+      <div class="alert-body"><div class="alert-title">${score>=85?'🔴':'🟡'} Score ${score}/100 — ${d['Property Address']||'Address TBD'}</div>
+      <div class="alert-detail">${d['City']||''}, ${d['State']||''} · Sale: ${d['Sale Date']||'TBD'} · Bid: $${(d['Opening Bid ($)']||0).toLocaleString()}</div></div>
+      <div class="alert-time">${d['Foreclosure Stage']||''}</div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PIPELINE
+// ═══════════════════════════════════════════════════════════════════
+const STAGES = ['Monitoring','Notice of Sale','Auction Pending','Under Review','Won'];
+
+async function loadPipeline() {
+  if (!CONFIG.token || !CONFIG.baseId) {
+    document.getElementById('pipeline-note').textContent = 'Configure Airtable to load live deals';
+    return;
+  }
+  const deals = await atFetch('Active Pipeline', "NOT({Pipeline Stage}='Dead')", 'sort[0][field]=Score&sort[0][direction]=desc');
+  if (!deals) { document.getElementById('pipeline-note').textContent = 'Error — check connection'; return; }
+  STAGES.forEach((stage, i) => {
+    const sd = deals.filter(d => d['Pipeline Stage'] === stage);
+    document.getElementById(`cnt-${i}`).textContent = sd.length;
+    const col = document.getElementById(`stage-${i}`);
+    if (!sd.length) { col.innerHTML = '<div style="padding:10px;font-size:11px;color:var(--text3);text-align:center">No deals</div>'; return; }
+    col.innerHTML = sd.map(d => {
+      const score = d['Score'] || 0;
+      const daysLeft = d['Sale Date'] ? Math.ceil((new Date(d['Sale Date']) - new Date()) / 864e5) : 99;
+      const urgent = daysLeft < 7;
+      const scoreColor = score >= 85 ? 'var(--red)' : score >= 75 ? 'var(--amber)' : 'var(--green)';
+      const mao = calcMAOValue(d['AVM Estimate ($)'] || 0, d['Opening Bid ($)'] || 0);
+      return `<div class="deal-card ${urgent?'urgent':score>=75?'hot':''}">
+        <div class="deal-addr">${d['Property Address']||'Address TBD'}</div>
+        <div class="deal-city">${d['City']||''}, ${d['State']||''}</div>
+        <div class="deal-meta">
+          <span class="deal-bid">Bid: $${(d['Opening Bid ($)']||0).toLocaleString()}</span>
+          <span class="deal-date">${d['Sale Date']||'TBD'}</span>
+        </div>
+        ${mao > 0 ? `<div style="font-size:10px;color:var(--green);font-family:var(--mono);margin-top:3px">MAO: $${mao.toLocaleString()}</div>` : ''}
+        <div class="deal-score-bar"><div class="deal-score-fill" style="width:${score}%;background:${scoreColor}"></div></div>
+        <div style="font-size:9px;color:var(--text3);font-family:var(--mono);margin-top:3px">Score: ${score}/100 ${urgent?'· ⚠ '+daysLeft+'d LEFT':''}</div>
+      </div>`;
+    }).join('');
+  });
+  document.getElementById('pipeline-note').textContent = `${deals.length} deals · Last sync: ${new Date().toLocaleTimeString()}`;
+}
+
+function calcMAOValue(arv, bid, factor=70, repairs=20000, holding=8000, closing=5000, profit=40000) {
+  if (!arv) return 0;
+  return Math.round((arv * (factor/100)) - repairs - holding - closing - profit);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════════════════════════════
+async function loadAlerts() {
+  const el = document.getElementById('alerts-list');
+  if (!CONFIG.token) { el.innerHTML = '<div class="loader">Connect Airtable first</div>'; return; }
+  el.innerHTML = '<div class="loader"><span class="pulse"></span>Loading...</div>';
+  const deals = await atFetch('Qualified Leads', `{Score}>=${CONFIG.scoreThreshold}`, 'sort[0][field]=Score&sort[0][direction]=desc', 20);
+  if (!deals) { el.innerHTML = '<div class="loader">Error — check connection</div>'; return; }
+  if (!deals.length) { el.innerHTML = '<div class="loader" style="font-size:11px">No deals above threshold yet</div>'; return; }
+  el.innerHTML = deals.map(d => {
+    const score = d['Score'] || 0;
+    const color = score >= 85 ? 'var(--red)' : score >= 75 ? 'var(--amber)' : 'var(--blue)';
+    return `<div class="alert-item ${score>=85?'urgent':score>=75?'hot':''}">
+      <div class="alert-dot" style="background:${color}"></div>
+      <div class="alert-body"><div class="alert-title">${score>=85?'🔴':'🟡'} Score ${score}/100 — ${d['Property Address']||'TBD'}</div>
+      <div class="alert-detail">${d['City']||''}, ${d['State']||''} · Sale: ${d['Sale Date']||'TBD'} · Bid: $${(d['Opening Bid ($)']||0).toLocaleString()} · AVM: $${(d['AVM Estimate ($)']||0).toLocaleString()}</div></div>
+      <div class="alert-time">${d['Alert Sent?']?'✓ Alerted':'Pending'}</div></div>`;
+  }).join('');
+  document.getElementById('alerts-badge').textContent = deals.length + ' alerts';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAO CALCULATOR
+// ═══════════════════════════════════════════════════════════════════
+function calcMAO() {
+  const arv = parseFloat(document.getElementById('mao-arv').value) || 0;
+  const avm = parseFloat(document.getElementById('mao-avm').value) || 0;
+  const bid = parseFloat(document.getElementById('mao-bid').value) || 0;
+  const repairs = parseFloat(document.getElementById('mao-repairs').value) || 0;
+  const holding = parseFloat(document.getElementById('mao-holding').value) || 8000;
+  const closing = parseFloat(document.getElementById('mao-closing').value) || 6000;
+  const targetProfit = parseFloat(document.getElementById('mao-profit-target').value) || 40000;
+  const factor = parseFloat(document.getElementById('mao-factor').value) / 100;
+  const strategy = document.getElementById('mao-strategy').value;
+  const rent = parseFloat(document.getElementById('mao-rent').value) || 0;
+
+  document.getElementById('rental-fields').style.display = strategy === 'hold' ? 'block' : 'none';
+
+  if (!arv) return;
+
+  let mao, adjProfit, profitLabel;
+  if (strategy === 'flip') {
+    mao = Math.round((arv * factor) - repairs - holding - closing - targetProfit);
+    adjProfit = bid > 0 ? Math.round(arv - bid - repairs - holding - closing) : null;
+    profitLabel = 'Flip Profit';
+  } else if (strategy === 'hold') {
+    const annualRent = rent * 12;
+    const capRate = arv > 0 ? (annualRent / arv * 100).toFixed(1) : 0;
+    mao = Math.round((arv * 0.75) - repairs - closing);
+    adjProfit = bid > 0 ? rent * 12 - (bid * 0.01 * 12) : null;
+    profitLabel = 'Annual Cash Flow';
+  } else {
+    mao = Math.round((arv * 0.65) - repairs);
+    adjProfit = bid > 0 ? Math.round(mao - bid) : null;
+    profitLabel = 'Wholesale Fee';
+  }
+
+  const equity = avm > 0 && bid > 0 ? Math.round(((avm - bid) / avm) * 100) : 0;
+  const spread = avm > 0 && bid > 0 ? (avm - bid) : 0;
+  const bidVsMao = bid > 0 ? (bid <= mao ? 'buy' : bid <= mao * 1.05 ? 'caution' : 'pass') : 'neutral';
+
+  const verdictMap = {
+    buy: { cls: 'buy', icon: '✅', text: `BUY — Bid ($${bid.toLocaleString()}) is under your MAO. Potential profit: $${adjProfit ? adjProfit.toLocaleString() : '—'}.` },
+    caution: { cls: 'caution', icon: '⚠️', text: `CAUTION — Bid is within 5% of MAO. Tight margins. Verify repair estimate carefully.` },
+    pass: { cls: 'pass', icon: '🚫', text: `PASS — Bid ($${bid.toLocaleString()}) exceeds MAO by $${(bid - mao).toLocaleString()}. Deal is upside down at current bid.` },
+    neutral: { cls: 'caution', icon: '📊', text: `Enter opening bid to compare against your MAO.` }
+  };
+  const v = verdictMap[bidVsMao];
+
+  // 3 scenarios
+  const conservative = Math.round((arv * 0.60) - repairs - holding - closing - targetProfit);
+  const standard = mao;
+  const aggressive = Math.round((arv * 0.80) - repairs - holding - closing - targetProfit);
+
+  document.getElementById('mao-result-panel').innerHTML = `
+    <div class="mao-label">Maximum Allowable Offer (${strategy === 'flip' ? '70% Rule' : strategy === 'hold' ? 'BRRRR Method' : 'Wholesale Rule'})</div>
+    <div class="mao-main">$${mao.toLocaleString()}</div>
+    <div class="mao-breakdown">
+      <div class="mao-line"><div class="mao-line-label">ARV</div><div class="mao-line-val" style="color:var(--text)">$${arv.toLocaleString()}</div></div>
+      <div class="mao-line"><div class="mao-line-label">Repairs</div><div class="mao-line-val" style="color:var(--red)">-$${repairs.toLocaleString()}</div></div>
+      <div class="mao-line"><div class="mao-line-label">Holding</div><div class="mao-line-val" style="color:var(--red)">-$${holding.toLocaleString()}</div></div>
+      <div class="mao-line"><div class="mao-line-label">Closing</div><div class="mao-line-val" style="color:var(--red)">-$${closing.toLocaleString()}</div></div>
+      <div class="mao-line"><div class="mao-line-label">Target Profit</div><div class="mao-line-val" style="color:var(--amber)">-$${targetProfit.toLocaleString()}</div></div>
+      <div class="mao-line"><div class="mao-line-label">Equity %</div><div class="mao-line-val" style="color:${equity >= 25 ? 'var(--green)' : equity >= 15 ? 'var(--amber)' : 'var(--red)'}">${equity}%</div></div>
+      ${spread > 0 ? `<div class="mao-line"><div class="mao-line-label">AVM Spread</div><div class="mao-line-val" style="color:var(--green)">$${spread.toLocaleString()}</div></div>` : ''}
+    </div>
+    <div class="mao-verdict ${v.cls}">${v.icon} ${v.text}</div>
+    <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:12px;margin-bottom:6px">SCENARIO ANALYSIS</div>
+    <div class="mao-scenarios">
+      <div class="mao-scenario"><div class="mao-scenario-name">Conservative 60%</div><div class="mao-scenario-val" style="color:var(--text2)">$${conservative.toLocaleString()}</div><div class="mao-scenario-sub">Lower risk</div></div>
+      <div class="mao-scenario" style="border-color:var(--green)"><div class="mao-scenario-name">Standard ${Math.round(factor*100)}%</div><div class="mao-scenario-val" style="color:var(--green)">$${standard.toLocaleString()}</div><div class="mao-scenario-sub">Your target</div></div>
+      <div class="mao-scenario"><div class="mao-scenario-name">Aggressive 80%</div><div class="mao-scenario-val" style="color:var(--amber)">$${aggressive.toLocaleString()}</div><div class="mao-scenario-sub">Higher risk</div></div>
+    </div>`;
+
+  // Populate comp table with mock data relative to ARV
+  const comps = [
+    { addr: '4 blk away', sold: Math.round(arv * 0.96), sqft: 1840, diff: -4 },
+    { addr: '0.3 mi', sold: Math.round(arv * 1.02), sqft: 1920, diff: +2 },
+    { addr: '0.5 mi', sold: Math.round(arv * 0.99), sqft: 1780, diff: -1 },
+  ];
+  document.getElementById('mao-comps').innerHTML = comps.map(c => 
+    `<tr><td style="font-family:var(--mono);font-size:11px">${c.addr}</td><td style="font-family:var(--mono);font-size:11px">$${c.sold.toLocaleString()}</td><td style="font-family:var(--mono);font-size:11px">$${Math.round(c.sold/c.sqft)}</td><td><span class="badge ${c.diff >= 0 ? 'bg' : 'ba'}">${c.diff >= 0 ? '+' : ''}${c.diff}%</span></td></tr>`
+  ).join('');
+}
+
+function resetMAO() {
+  ['mao-arv','mao-avm','mao-bid','mao-repairs','mao-holding','mao-closing','mao-profit-target','mao-rent'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('mao-result-panel').innerHTML = '<div style="text-align:center;color:var(--text3);font-family:var(--mono);padding:30px 0">Enter property details to calculate MAO →</div>';
+  document.getElementById('mao-comps').innerHTML = '<tr><td colspan="4" style="color:var(--text3);font-family:var(--mono);font-size:11px;padding:14px">Enter ARV to see comp analysis</td></tr>';
+}
+
+async function getMAOStrategy() {
+  const arv = document.getElementById('mao-arv').value;
+  const bid = document.getElementById('mao-bid').value;
+  const repairs = document.getElementById('mao-repairs').value;
+  const strategy = document.getElementById('mao-strategy').value;
+  const el = document.getElementById('mao-ai-advice');
+  if (!arv) { el.innerHTML = '<span style="color:var(--red)">Please enter property details first.</span>'; return; }
+  el.innerHTML = '<div class="ai-thinking"><div class="dot-flashing"></div> Analyzing deal...</div>';
+
+  const openaiKey = localStorage.getItem('openai_key') || document.getElementById('cfg-openai')?.value;
+  if (!openaiKey) {
+    el.innerHTML = `<strong style="color:var(--amber)">Demo Mode</strong> — Add your OpenAI API key in Config for live AI analysis.<br><br>
+      <strong>Sample strategy for this deal:</strong><br>
+      ARV of $${parseInt(arv).toLocaleString()} with $${parseInt(repairs||0).toLocaleString()} in repairs gives strong flip margins. 
+      With opening bid at $${parseInt(bid||0).toLocaleString()}, you have approximately ${Math.round(((parseInt(arv)-parseInt(bid||0))/parseInt(arv))*100)}% equity. 
+      <strong>Recommendation:</strong> Lead with your MAO minus 5% ($${Math.round(calcMAOValue(parseInt(arv),parseInt(bid||0))*0.95).toLocaleString()}) as opening counter. 
+      If competition is low (Tuesday morning, non-judicial state), bid to MAO. Don't exceed MAO unless you have pre-verified comps supporting higher ARV.`;
+    return;
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `You are a foreclosure real estate investment expert. Give a concise 3-4 sentence bid strategy for: ARV: $${arv}, Opening Bid: $${bid||'unknown'}, Repairs: $${repairs||0}, Strategy: ${strategy}. Include specific bid recommendation and key risks.` }]
+      })
+    });
+    const data = await res.json();
+    el.innerHTML = `<strong style="color:var(--green)">AI Bid Strategy:</strong><br>${data.content[0].text}`;
+  } catch(e) {
+    el.innerHTML = '<span style="color:var(--red)">API error — check your key in Config.</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AI NEGOTIATOR
+// ═══════════════════════════════════════════════════════════════════
+function setStrategy(s, el) {
+  negStrategy = s;
+  document.querySelectorAll('.neg-strat').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  appendNegMsg(`Strategy switched to: ${s.toUpperCase()} — AI will adapt tone accordingly.`, 'system');
+}
+
+function injectScenario(msg) {
+  document.getElementById('neg-input').value = msg;
+  sendNeg();
+}
+
+async function sendNeg() {
+  const input = document.getElementById('neg-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendNegMsg(msg, 'user');
+  negHistory.push({ role: 'user', content: msg });
+
+  const context = buildNegContext();
+  const thinkingEl = appendNegMsg('...', 'ai');
+
+  const openaiKey = localStorage.getItem('openai_key') || document.getElementById('cfg-openai')?.value;
+
+  if (!openaiKey) {
+    // Demo mode
+    setTimeout(() => {
+      const demoReplies = {
+        trust: ['I completely understand — this is a stressful time for anyone. I\'m a local investor and I buy homes directly, which means a fast close, no commissions, and no repairs needed. Would that kind of solution help you?', 'That\'s totally fair to be cautious. I\'ve helped 14 homeowners in similar situations this year. Can I ask — what\'s your biggest concern right now?'],
+        urgency: ['I want to be upfront — with the sale date coming up fast, the window to avoid the auction is closing. Have you considered what happens if the auction goes through?', 'I hear you. The good news is we can close in as few as 7 days if the numbers work. What would it take for you to say yes today?'],
+        price: ['I appreciate you sharing that. What number were you hoping to get? I want to see if we can make something work.', 'That helps me understand where you\'re at. Let me run the numbers on my end — can I call you back in 20 minutes with a formal offer?'],
+        motivation: ['Everyone\'s situation is different. Are you looking for top dollar, or is a fast, hassle-free close more important right now?', 'It sounds like there\'s a lot going on. What would the ideal outcome look like for you in this situation?'],
+        close: ['I can have a signed purchase agreement to you within the hour. All cash, no contingencies. Want to move forward?', 'To protect both of us, I\'d like to get this in writing today. Can we do a quick 10-minute call to finalize the terms?'],
+        exit: ['I appreciate your time. If anything changes or you want to revisit this, I\'m always available. I\'ll leave my contact info in case the circumstances change.', 'Understood — I won\'t pressure you. Good luck with everything. If the auction doesn\'t go the way you hope, give me a call.']
+      };
+      const replies = demoReplies[negStrategy] || demoReplies.trust;
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      const intent = msg.toLowerCase().includes('yes') || msg.toLowerCase().includes('interested') || msg.toLowerCase().includes('meet') ? 'HOT' :
+                     msg.toLowerCase().includes('maybe') || msg.toLowerCase().includes('consider') ? 'WARM' : 'COLD';
+      thinkingEl.textContent = reply;
+      thinkingEl.className = 'neg-msg ai';
+      updateIntent(intent);
+      updateCoaching(msg, intent, reply);
+    }, 900);
+    return;
+  }
+
+  try {
+    const systemPrompt = buildNegSystemPrompt(context);
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'system', content: systemPrompt }, ...negHistory],
+        response_format: { type: 'json_object' }
+      })
+    });
+    const data = await res.json();
+    const parsed = JSON.parse(data.choices[0].message.content);
+    thinkingEl.textContent = parsed.reply;
+    thinkingEl.className = 'neg-msg ai';
+    negHistory.push({ role: 'assistant', content: parsed.reply });
+    updateIntent(parsed.intent);
+    updateCoaching(msg, parsed.intent, parsed.reply);
+  } catch(e) {
+    thinkingEl.textContent = 'Error connecting to AI — check API key in Config.';
+    thinkingEl.className = 'neg-msg ai';
+  }
+}
+
+function buildNegContext() {
+  return {
+    addr: document.getElementById('neg-addr')?.value || 'Unknown property',
+    name: document.getElementById('neg-name')?.value || 'Seller',
+    bid: document.getElementById('neg-bid')?.value,
+    mao: document.getElementById('neg-mao')?.value,
+    days: document.getElementById('neg-days')?.value,
+    loan: document.getElementById('neg-loan')?.value,
+    notes: document.getElementById('neg-notes')?.value,
+    strategy: negStrategy,
+  };
+}
+
+function buildNegSystemPrompt(ctx) {
+  return `You are a seasoned real estate investor texting a homeowner in pre-foreclosure about ${ctx.addr}.
+Strategy mode: ${ctx.strategy.toUpperCase()}.
+${ctx.bid ? `Opening bid: $${ctx.bid}` : ''} ${ctx.mao ? `Your MAO: $${ctx.mao}` : ''}
+${ctx.days ? `${ctx.days} days until auction.` : ''} ${ctx.notes ? `Notes: ${ctx.notes}` : ''}
+
+Rules:
+- Max 2 sentences. Natural, human SMS tone.
+- Strategy ${ctx.strategy}: ${{'trust':'Build rapport and trust first, no pressure','urgency':'Gently create awareness of time pressure','price':'Probe seller price expectations','motivation':'Discover seller pain points','close':'Move toward signed agreement','exit':'Disengage politely while leaving door open'}[ctx.strategy]}
+- Never reveal MAO. Never lie.
+- Classify intent: HOT (ready/discussing price), WARM (maybe/unsure), COLD (rejecting)
+
+Return ONLY this JSON: {"reply": "your SMS text", "intent": "HOT|WARM|COLD", "coaching": "one-line note for investor about what you detected"}`;
+}
+
+function appendNegMsg(text, type) {
+  const chat = document.getElementById('neg-chat');
+  const el = document.createElement('div');
+  el.className = `neg-msg ${type}`;
+  el.textContent = text;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+
+function updateIntent(intent) {
+  document.getElementById('neg-intent-display').textContent = `Intent: ${intent}`;
+  document.getElementById('neg-intent-display').className = `badge intent-${intent.toLowerCase()}`;
+  if (intent === 'HOT') intentCounts.hot++;
+  else if (intent === 'WARM') intentCounts.warm++;
+  else intentCounts.cold++;
+  document.getElementById('intent-hot-cnt').textContent = intentCounts.hot;
+  document.getElementById('intent-warm-cnt').textContent = intentCounts.warm;
+  document.getElementById('intent-cold-cnt').textContent = intentCounts.cold;
+}
+
+function updateCoaching(sellerMsg, intent, aiReply) {
+  const coachingTips = {
+    HOT: '🔥 HOT signal detected. Switch strategy to CLOSE. Ask for specific meeting time or signed agreement now.',
+    WARM: '🟡 Seller is warming up. Continue building trust. Avoid jumping to price too fast — probe motivation first.',
+    COLD: '⚪ Seller is resistant. Consider GRACEFUL EXIT strategy or longer follow-up sequence (7-day re-ping).'
+  };
+  document.getElementById('neg-coaching').innerHTML = `<strong>AI Coaching:</strong> ${coachingTips[intent]||'Continue conversation naturally.'}`;
+  
+  const actions = {
+    HOT: ['<button class="btn btn-primary btn-sm" style="width:100%">📲 Schedule call NOW</button>','<button class="btn btn-ghost btn-sm" style="width:100%">📝 Draft Purchase Agreement</button>','<button class="btn btn-ghost btn-sm" style="width:100%">🔔 Alert team — HOT LEAD</button>'],
+    WARM: ['<button class="btn btn-ghost btn-sm" style="width:100%">📋 Add to 7-day follow-up</button>','<button class="btn btn-ghost btn-sm" style="width:100%">💬 Try price discovery</button>'],
+    COLD: ['<button class="btn btn-ghost btn-sm" style="width:100%">⏸ Pause contact 7 days</button>','<button class="btn btn-danger btn-sm" style="width:100%">🗑 Mark as Cold Lead</button>']
+  };
+  document.getElementById('neg-next-actions').innerHTML = (actions[intent]||[]).join('');
+}
+
+function clearNegChat() {
+  negHistory = [];
+  intentCounts = { hot:0, warm:0, cold:0 };
+  document.getElementById('neg-chat').innerHTML = '<div class="neg-msg system">Chat cleared. AI Negotiator ready.</div>';
+  document.getElementById('intent-hot-cnt').textContent = '0';
+  document.getElementById('intent-warm-cnt').textContent = '0';
+  document.getElementById('intent-cold-cnt').textContent = '0';
+}
+
+function exportNegChat() {
+  const msgs = document.querySelectorAll('.neg-msg');
+  const text = Array.from(msgs).map(m => `[${m.classList[1].toUpperCase()}]: ${m.textContent}`).join('\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'negotiation_log.txt'; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DEAL RANKING
+// ═══════════════════════════════════════════════════════════════════
+function initRanking() {
+  rankingData = [...DEMO_DEALS];
+  renderRanking(rankingData);
+  const total = rankingData.reduce((s,d) => s + d.bid, 0);
+  document.getElementById('rank-avg-score').textContent = Math.round(rankingData.reduce((s,d) => s+d.score,0)/rankingData.length);
+  document.getElementById('rank-total-value').textContent = '$' + (total/1e6).toFixed(2)+'M';
+  document.getElementById('rank-hot-cnt').textContent = rankingData.filter(d => d.score >= 85).length;
+  document.getElementById('rank-total-cnt').textContent = rankingData.length;
+}
+
+function renderRanking(deals) {
+  const el = document.getElementById('ranking-list');
+  if (!deals.length) { el.innerHTML = '<div class="empty-state">No deals — load from Airtable or add manually</div>'; return; }
+  const sorted = [...deals].sort((a,b) => b.score - a.score);
+  el.innerHTML = sorted.map((d, i) => {
+    const scoreColor = d.score >= 85 ? '#ff4d6a' : d.score >= 75 ? '#ffb830' : '#00e5a0';
+    const equity = Math.round(((d.avm - d.bid) / d.avm) * 100);
+    const mao = calcMAOValue(d.avm, d.bid, 70, d.repairs || 20000);
+    const projProfit = Math.round(d.avm - d.bid - (d.repairs||20000) - 14000);
+    const urgency = d.daysToSale <= 7 ? '🔴 URGENT' : d.daysToSale <= 14 ? '🟡 HOT' : '🟢 OK';
+    return `<div class="rank-item">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-score-pill" style="background:${scoreColor}22;border:2px solid ${scoreColor}">
+        <span style="color:${scoreColor}">${d.score}</span>
+      </div>
+      <div class="rank-info">
+        <div class="rank-addr">${d.addr}</div>
+        <div class="rank-detail">${d.city}, ${d.state} · ${d.daysToSale}d to sale · ${equity}% equity</div>
+        <div class="rank-tags">
+          <span class="badge ${d.score>=85?'br':d.score>=75?'ba':'bg'}">${urgency}</span>
+          <span class="badge bb">${d.strategy}</span>
+          ${d.score >= 85 ? '<span class="badge br">🔥 Hot</span>' : ''}
+        </div>
+      </div>
+      <div class="rank-right">
+        <div class="rank-mao">MAO: $${mao.toLocaleString()}</div>
+        <div class="rank-profit">Proj. profit: $${projProfit.toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px">Bid: $${d.bid.toLocaleString()}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sortRanking(by) {
+  const sorted = [...rankingData].sort((a,b) => {
+    if (by === 'score') return b.score - a.score;
+    if (by === 'profit') return (b.avm - b.bid) - (a.avm - a.bid);
+    if (by === 'urgency') return a.daysToSale - b.daysToSale;
+    return 0;
+  });
+  renderRanking(sorted);
+}
+
+function filterRanking(f) {
+  if (f === 'all') renderRanking(rankingData);
+  else if (f === 'hot') renderRanking(rankingData.filter(d => d.score >= 85));
+  else if (f === 'warm') renderRanking(rankingData.filter(d => d.score >= 75 && d.score < 85));
+}
+
+async function loadRankingFromAirtable() {
+  if (!CONFIG.token) { alert('Connect Airtable first in Config tab'); return; }
+  const deals = await atFetch('Qualified Leads', '', 'sort[0][field]=Score&sort[0][direction]=desc', 50);
+  if (!deals) return;
+  rankingData = deals.map(d => ({
+    id: d.id, addr: d['Property Address']||'TBD', city: d['City']||'', state: d['State']||'',
+    bid: d['Opening Bid ($)']||0, avm: d['AVM Estimate ($)']||0, score: d['Score']||0,
+    daysToSale: d['Sale Date'] ? Math.max(0,Math.ceil((new Date(d['Sale Date'])-new Date())/864e5)) : 99,
+    rent: d['Rent Estimate ($)']||0, strategy: 'flip', repairs: 20000
+  }));
+  renderRanking(rankingData);
+  document.getElementById('rank-avg-score').textContent = Math.round(rankingData.reduce((s,d) => s+d.score,0)/rankingData.length);
+  document.getElementById('rank-total-cnt').textContent = rankingData.length;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PROFIT DASHBOARD
+// ═══════════════════════════════════════════════════════════════════
+function initProfitCharts() {
+  // P&L by strategy chart
+  const ctx1 = document.getElementById('plStrategyChart')?.getContext('2d');
+  if (ctx1 && !ctx1.chart) {
+    ctx1.chart = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Fix & Flip', 'Buy & Hold', 'Wholesale'],
+        datasets: [{ data: [142000, 28500, 17000], backgroundColor: ['#ffb830', '#00e5a0', '#4db8ff'], borderWidth: 0 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } } }
+    });
+  }
+
+  // Profit trend chart
+  const ctx2 = document.getElementById('profitTrendChart')?.getContext('2d');
+  if (ctx2 && !ctx2.chart) {
+    ctx2.chart = new Chart(ctx2, {
+      type: 'line',
+      data: {
+        labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+        datasets: [{ label: 'Realized Profit', data: [0, 0, 47500, 72000, 0, 68000], borderColor:'#00e5a0', backgroundColor:'rgba(0,229,160,0.08)', tension:.4, fill:true, pointBackgroundColor:'#00e5a0' },
+                   { label: 'Projected', data: [0, 0, 47500, 72000, 80000, 180000], borderColor:'#ffb830', backgroundColor:'transparent', borderDash:[4,4], tension:.4, pointBackgroundColor:'#ffb830' }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ x:{ ticks:{ color:'#7e8694' }, grid:{ color:'rgba(255,255,255,0.04)' } }, y:{ ticks:{ color:'#7e8694', callback:v=>'$'+v/1000+'K' }, grid:{ color:'rgba(255,255,255,0.04)' } } } }
+    });
+  }
+}
+
+function addDealRow() {
+  const addr = prompt('Property address:');
+  if (!addr) return;
+  dealTracker.push({ id: Date.now(), addr, strategy: 'flip', purchase: 0, rehab: 0, sale: 0, status: 'Active' });
+  localStorage.setItem('deal_tracker', JSON.stringify(dealTracker));
+  renderProfitTable();
+}
+
+function renderProfitTable() {
+  const tbody = document.getElementById('profit-table');
+  if (!dealTracker.length) return;
+  tbody.innerHTML = dealTracker.map((d,i) => {
+    const profit = d.sale - d.purchase - d.rehab;
+    const roi = d.purchase > 0 ? ((profit/(d.purchase+d.rehab))*100).toFixed(1) : '—';
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text3)">${i+1}</td>
+      <td style="font-size:12px">${d.addr}</td>
+      <td><span class="strategy-pill ${d.strategy}">${d.strategy}</span></td>
+      <td style="font-family:var(--mono);font-size:12px">$${(d.purchase||0).toLocaleString()}</td>
+      <td style="font-family:var(--mono);font-size:12px">$${(d.rehab||0).toLocaleString()}</td>
+      <td style="font-family:var(--mono);font-size:12px">${d.sale ? '$'+d.sale.toLocaleString() : '—'}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:${profit>0?'var(--green)':profit<0?'var(--red)':'var(--text2)'}">${d.sale ? (profit>0?'+':'')+' $'+profit.toLocaleString() : '—'}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${roi !== '—' ? roi+'%' : '—'}</td>
+      <td><span class="badge ${d.status==='Closed'?'bg':'ba'}">${d.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateProfit() { /* period filter — would re-query Airtable in production */ }
+
+// ═══════════════════════════════════════════════════════════════════
+// INTELLIGENCE CHAT
+// ═══════════════════════════════════════════════════════════════════
+function quickIntel(msg) {
+  document.getElementById('intel-input').value = msg;
+  sendIntelChat();
+}
+
+async function sendIntelChat() {
+  const input = document.getElementById('intel-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const chat = document.getElementById('ai-chat-intel');
+  const userEl = document.createElement('div');
+  userEl.className = 'neg-msg user'; userEl.textContent = msg;
+  chat.appendChild(userEl);
+  const aiEl = document.createElement('div');
+  aiEl.className = 'neg-msg ai'; aiEl.innerHTML = '<div class="ai-thinking"><div class="dot-flashing"></div></div>';
+  chat.appendChild(aiEl);
+  chat.scrollTop = chat.scrollHeight;
+
+  const openaiKey = localStorage.getItem('openai_key') || document.getElementById('cfg-openai')?.value;
+  if (!openaiKey) {
+    setTimeout(() => {
+      const demoResponses = {
+        'top markets': '📊 Based on Q1 2026 data, your top 3 markets are: **Tampa FL** (4,820 starts, hedge fund pullback = less competition), **Phoenix AZ** (volume leader, bid windows Tues 10am), **Dallas TX** (strong rental demand, 85k+ INVH portfolio = easy wholesale exits).',
+        'competition': '🎯 Lowest competition windows this week: Maricopa County (AZ) Tuesday 9-11am historically 22% below average bid count. Henderson NV (Clark County) has seen Invitation Homes pull back 18% this month.',
+        'strategy': '💡 Current market conditions favor **Fix & Flip** in AZ/FL (high flip demand, 60-90 day DOM), **Wholesale** in TX/GA (hedge funds still hungry for deals at 65-70% ARV), and **BRRRR** in NV (rent-to-price ratios improving).',
+        'risk': '⚠️ Top risks in your pipeline: (1) FL deals with IRS liens detected — title costs spike 8-12K. (2) AZ auction postponement wave expected (loan mod uptick). (3) Any deal with <14 days to sale needs day-of monitoring every 15min.'
+      };
+      const key = Object.keys(demoResponses).find(k => msg.toLowerCase().includes(k));
+      aiEl.textContent = key ? demoResponses[key] : 'This is demo mode. Add your OpenAI API key in Config to get real AI analysis of your markets and deals.';
+    }, 800);
+    return;
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `You are an expert real estate investment analyst specializing in foreclosure investing. Answer concisely (3-5 sentences max). Question: ${msg}` }]
+      })
+    });
+    const data = await res.json();
+    aiEl.textContent = data.content[0].text;
+  } catch(e) {
+    aiEl.textContent = 'API error — verify key in Config.';
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function runIntelligence() {
+  appendIntelMsg('🔍 Running full portfolio analysis...');
+  setTimeout(() => appendIntelMsg('✅ Analysis complete. 3 new pattern signals detected. See panels above.'), 1500);
+}
+function appendIntelMsg(msg) {
+  const chat = document.getElementById('ai-chat-intel');
+  const el = document.createElement('div');
+  el.className = 'neg-msg system'; el.textContent = msg;
+  chat.appendChild(el); chat.scrollTop = chat.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════════════
+let chartsInited = {};
+
+function initDashCharts() {
+  if (!chartsInited.mkt) {
+    chartsInited.mkt = true;
+    new Chart(document.getElementById('mktChart'), {
+      type: 'bar',
+      data: {
+        labels: ['FL','TX','CA','AZ','NV','GA','NC','TN'],
+        datasets: [
+          { label: 'Foreclosure Starts Q1', data: [4820,3910,3540,2180,1620,1490,1120,870], backgroundColor: '#00e5a0cc' },
+          { label: 'REOs Q1 2026', data: [1014,742,680,390,298,261,195,148], backgroundColor: '#4db8ffcc' }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ x:{ ticks:{ color:'#7e8694', font:{size:11} }, grid:{ color:'rgba(255,255,255,0.04)' } }, y:{ ticks:{ color:'#7e8694' }, grid:{ color:'rgba(255,255,255,0.04)' } } } }
+    });
+  }
+  if (!chartsInited.pipeline) {
+    chartsInited.pipeline = true;
+    new Chart(document.getElementById('pipelineChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Monitoring','Notice of Sale','Auction Pending','Under Review','Won'],
+        datasets: [{ data: [12,8,5,3,4], backgroundColor: ['#4a515e','#4db8ff','#ffb830','#a78bfa','#00e5a0'], borderRadius: 4 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#7e8694', font:{size:10} }, grid:{ display:false } }, y:{ ticks:{ color:'#7e8694' }, grid:{ color:'rgba(255,255,255,0.04)' } } } }
+    });
+  }
+  if (!chartsInited.score) {
+    chartsInited.score = true;
+    new Chart(document.getElementById('scoreChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Hot (85-100)','Warm (75-84)','Monitor (60-74)','Watching (<60)'],
+        datasets: [{ data: [3,5,8,16], backgroundColor: ['#ff4d6a','#ffb830','#00e5a0','#2a2e38'], borderWidth: 0 }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:'#7e8694', font:{size:11}, padding:14 } } } }
+    });
+  }
+}
+
+function initHFChart() {
+  if (chartsInited.hf) return; chartsInited.hf = true;
+  new Chart(document.getElementById('hfChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Phoenix AZ','Tampa FL','Las Vegas NV','Dallas TX','Atlanta GA','Charlotte NC'],
+      datasets: [
+        { label: 'Invitation Homes', data: [95,70,80,85,90,40], borderColor:'#00e5a0', backgroundColor:'rgba(0,229,160,0.07)', pointBackgroundColor:'#00e5a0' },
+        { label: 'Progress Residential', data: [90,85,60,80,95,75], borderColor:'#ffb830', backgroundColor:'rgba(255,184,48,0.07)', pointBackgroundColor:'#ffb830' },
+        { label: 'AMH', data: [70,80,85,75,85,80], borderColor:'#4db8ff', backgroundColor:'rgba(77,184,255,0.07)', pointBackgroundColor:'#4db8ff' }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ r:{ grid:{ color:'rgba(255,255,255,0.06)' }, ticks:{ color:'#4a515e', font:{size:9} }, pointLabels:{ color:'#7e8694', font:{size:11} } } } }
+  });
+}
+
+function initCompChart() {
+  if (chartsInited.comp) return; chartsInited.comp = true;
+  new Chart(document.getElementById('compChart'), {
+    type: 'bar',
+    data: {
+      labels: ['PHX','ATL','TPA','LV','DFW','CLT','DEN','NAS'],
+      datasets: [{ label: 'Avg Competing Bidders', data: [4.2,3.8,5.1,3.4,4.7,2.9,3.2,2.6], backgroundColor: '#ff4d6a88', borderRadius:4 },
+                 { label: 'Your Win Rate %', data: [38,42,28,52,35,64,58,71], backgroundColor: '#00e5a088', borderRadius:4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ x:{ ticks:{ color:'#7e8694' }, grid:{ display:false } }, y:{ ticks:{ color:'#7e8694' }, grid:{ color:'rgba(255,255,255,0.04)' } } } }
+  });
+}
+
+function initIntelCharts() {
+  if (!chartsInited.hfAct) {
+    chartsInited.hfAct = true;
+    new Chart(document.getElementById('hfActivityChart'), {
+      type: 'line',
+      data: {
+        labels: ['Mar 25','Apr 1','Apr 8','Apr 15','Apr 22'],
+        datasets: [
+          { label: 'Invitation Homes', data: [18,22,19,24,21], borderColor:'#00e5a0', tension:.4, pointRadius:3 },
+          { label: 'Progress', data: [24,28,31,26,22], borderColor:'#ffb830', tension:.4, pointRadius:3 },
+          { label: 'AMH', data: [12,14,13,15,13], borderColor:'#4db8ff', tension:.4, pointRadius:3 }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ x:{ ticks:{ color:'#7e8694', font:{size:10} }, grid:{ color:'rgba(255,255,255,0.04)' } }, y:{ ticks:{ color:'#7e8694' }, grid:{ color:'rgba(255,255,255,0.04)' } } } }
+    });
+  }
+  if (!chartsInited.opp) {
+    chartsInited.opp = true;
+    new Chart(document.getElementById('opportunityChart'), {
+      type: 'polarArea',
+      data: {
+        labels: ['AZ','FL','NV','TX','GA','NC'],
+        datasets: [{ data: [87,82,79,74,68,61], backgroundColor: ['rgba(255,77,106,0.6)','rgba(255,184,48,0.6)','rgba(0,229,160,0.6)','rgba(77,184,255,0.6)','rgba(167,139,250,0.6)','rgba(90,96,112,0.6)'] }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7e8694', font:{size:11} } } }, scales:{ r:{ ticks:{ display:false }, grid:{ color:'rgba(255,255,255,0.06)' } } } }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════
+function validateConfig() {
+  const t = document.getElementById('cfg-token').value;
+  const b = document.getElementById('cfg-base').value;
+  document.getElementById('cfg-token').className = 'field-input ' + (t.startsWith('pat') ? 'valid' : t.length > 0 ? 'invalid' : '');
+  document.getElementById('cfg-base').className = 'field-input ' + (b.startsWith('app') ? 'valid' : b.length > 0 ? 'invalid' : '');
+}
+
+async function testConnection() {
+  const t = document.getElementById('cfg-token').value;
+  const b = document.getElementById('cfg-base').value;
+  const status = document.getElementById('conn-status');
+  status.textContent = 'Testing...'; status.style.color = 'var(--amber)';
+  try {
+    const res = await fetch(`${AIRTABLE}/${b}/Active%20Pipeline?maxRecords=1`, { headers: { 'Authorization': `Bearer ${t}` } });
+    if (res.ok) {
+      status.textContent = '✓ Connected successfully'; status.style.color = 'var(--green)';
+      document.getElementById('conn-badge').textContent = '✓ Connected';
+      document.getElementById('conn-badge').className = 'badge bg';
+      document.getElementById('dash-check').textContent = '✓ Connected';
+      document.getElementById('dash-check').className = 'badge bg';
+    } else {
+      status.textContent = '✗ Failed — check token & base ID'; status.style.color = 'var(--red)';
+    }
+  } catch { status.textContent = '✗ Network error'; status.style.color = 'var(--red)'; }
+}
+
+function saveConfig() {
+  CONFIG.token = document.getElementById('cfg-token').value || CONFIG.token;
+  CONFIG.baseId = document.getElementById('cfg-base').value || CONFIG.baseId;
+  CONFIG.states = document.getElementById('cfg-states').value;
+  CONFIG.minEquity = document.getElementById('cfg-equity').value;
+  CONFIG.scoreThreshold = document.getElementById('cfg-score').value;
+  CONFIG.maxDays = document.getElementById('cfg-days').value;
+  localStorage.setItem('at_token', CONFIG.token);
+  localStorage.setItem('at_base', CONFIG.baseId);
+  localStorage.setItem('at_states', CONFIG.states);
+  localStorage.setItem('at_equity', CONFIG.minEquity);
+  localStorage.setItem('at_score', CONFIG.scoreThreshold);
+  localStorage.setItem('at_days', CONFIG.maxDays);
+  loadDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (CONFIG.token) document.getElementById('cfg-token').value = CONFIG.token;
+  if (CONFIG.baseId) document.getElementById('cfg-base').value = CONFIG.baseId;
+  document.getElementById('cfg-states').value = CONFIG.states;
+  document.getElementById('cfg-equity').value = CONFIG.minEquity;
+  document.getElementById('cfg-score').value = CONFIG.scoreThreshold;
+  document.getElementById('cfg-days').value = CONFIG.maxDays;
+  if (localStorage.getItem('openai_key')) document.getElementById('cfg-openai').value = localStorage.getItem('openai_key');
+  if (CONFIG.token && CONFIG.baseId) {
+    document.getElementById('conn-badge').textContent = '✓ Connected';
+    document.getElementById('conn-badge').className = 'badge bg';
+  }
+  initDashCharts();
+  initRanking();
+  renderProfitTable();
+  if (CONFIG.token && CONFIG.baseId) loadDashboard();
+});
+
+// Auto-refresh every 5 min
+setInterval(() => {
+  if (CONFIG.token && CONFIG.baseId) {
+    loadDashboard();
+    if (document.getElementById('panel-pipeline').classList.contains('active')) loadPipeline();
+    if (document.getElementById('panel-alerts').classList.contains('active')) loadAlerts();
+  }
+}, 5 * 60 * 1000);
+</script>
+</body>
+</html>

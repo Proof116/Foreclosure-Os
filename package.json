@@ -1,0 +1,19 @@
+{
+  "name": "foreclosure-os-v2",
+  "version": "0.1.0",
+  "description": "Minimal Foreclosure OS V2 server",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "dotenv": "^16.1.4",
+    "node-cron": "^4.2.1",
+    "openai": "^4.20.1",
+    "twilio": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foreclosure OS — Setup Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c0f;--bg2:#111318;--bg3:#181c22;--bg4:#1e232b;
+  --border:#ffffff12;--border2:#ffffff22;
+  --text:#e8eaf0;--text2:#8b9099;--text3:#5a6070;
+  --green:#00e5a0;--green2:#00b87a;--green3:#003d28;
+  --blue:#4db8ff;--blue2:#1a8fff;--blue3:#001a2e;
+  --amber:#ffb830;--amber2:#cc8a00;--amber3:#2e1f00;
+  --red:#ff5555;--red3:#2e0000;--purple:#a78bfa;--purple3:#1a0e3d;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+.left-nav{width:280px;min-width:280px;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;max-width:800px;padding:40px 48px;margin:0 auto}
+
+/* LEFT NAV */
+.nav-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.nav-logo-title{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.nav-logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.nav-progress{padding:16px 20px;border-bottom:1px solid var(--border)}
+.progress-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.progress-bar-bg{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.progress-bar{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+.progress-text{font-size:11px;color:var(--text2);margin-top:6px;font-family:var(--mono)}
+.nav-sections{padding:12px 10px}
+.nav-section-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);padding:8px 10px 4px}
+.nav-step{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .15s;margin:1px 0;border:1px solid transparent}
+.nav-step:hover{background:var(--bg3)}
+.nav-step.active{background:var(--bg4);border-color:var(--border2)}
+.nav-step.done .step-dot{background:var(--green);border-color:var(--green2)}
+.nav-step.done .step-dot::after{content:'✓';color:#000;font-size:9px;font-weight:700}
+.nav-step.active .step-dot{border-color:var(--green);background:var(--green3)}
+.step-dot{width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-family:var(--mono);color:var(--text3);transition:all .2s}
+.nav-step.active .step-dot{color:var(--green)}
+.step-label{font-size:12px;color:var(--text2);line-height:1.3;flex:1}
+.nav-step.active .step-label{color:var(--text)}
+.nav-step.done .step-label{color:var(--text2)}
+.nav-footer{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border)}
+
+/* MAIN CONTENT */
+.section{display:none}.section.active{display:block}
+.section-header{margin-bottom:32px}
+.phase-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-family:var(--mono);margin-bottom:12px}
+.section-title{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1.2;margin-bottom:10px}
+.section-desc{font-size:15px;color:var(--text2);line-height:1.7}
+.time-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);font-size:11px;color:var(--text2);font-family:var(--mono);margin-top:10px}
+
+/* STEP CARDS */
+.step-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;transition:border-color .2s}
+.step-card:hover{border-color:var(--border2)}
+.step-card-header{padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:13px;font-family:var(--mono);font-weight:500;flex-shrink:0;transition:all .2s}
+.step-card.completed .step-num{background:var(--green3);border-color:var(--green2);color:var(--green)}
+.step-card.expanded .step-num{background:var(--green);border-color:var(--green2);color:#000}
+.step-card-title{font-size:14px;font-weight:600;flex:1}
+.step-card-status{font-size:11px;font-family:var(--mono)}
+.step-card-body{padding:0 20px 0;max-height:0;overflow:hidden;transition:all .3s}
+.step-card.expanded .step-card-body{padding:0 20px 20px;max-height:2000px}
+.step-body-inner{padding-top:4px;border-top:1px solid var(--border)}
+
+/* CONTENT ELEMENTS */
+.instruction{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.instruction:last-child{border-bottom:none}
+.instr-num{width:22px;height:22px;border-radius:50%;background:var(--blue3);border:1px solid var(--blue2);color:var(--blue);font-size:11px;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.instr-body{flex:1}
+.instr-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.instr-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:var(--mono);font-size:12px;margin:8px 0;position:relative;line-height:1.8}
+.code-block .comment{color:var(--text3)}
+.code-block .key{color:var(--amber)}
+.code-block .val{color:var(--green)}
+.code-block .cmd{color:var(--blue)}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:10px;font-family:var(--mono);color:var(--text2);cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--border)}
+.tip-box{background:rgba(0,229,160,0.06);border:1px solid rgba(0,229,160,0.2);border-radius:8px;padding:12px 14px;margin:10px 0;font-size:12px;color:var(--text2);line-height:1.7}
+.tip-box .tip-icon{color:var(--green);font-weight:700;margin-right:4px}
+.warn-box{background:rgba(255,184,48,0.06);border:1px solid rgba(255,184,48,0.25);border-radius:8px;padding:12px 14px;margin:10px 0;font-size:12px;color:var(--text2);line-height:1.7}
+.warn-box .warn-icon{color:var(--amber);font-weight:700;margin-right:4px}
+.danger-box{background:rgba(255,85,85,0.06);border:1px solid rgba(255,85,85,0.25);border-radius:8px;padding:12px 14px;margin:10px 0;font-size:12px;color:var(--text2);line-height:1.7}
+.link-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;background:var(--blue3);border:1px solid var(--blue2);color:var(--blue);font-size:12px;font-family:var(--mono);text-decoration:none;transition:all .15s;margin:4px 4px 4px 0}
+.link-btn:hover{background:#002040}
+.check-item{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-bottom:1px solid var(--border)}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+.check-label{font-size:13px;flex:1}
+.check-item.checked .check-label{color:var(--text3);text-decoration:line-through}
+.screenshot-mock{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:20px;margin:10px 0;text-align:center}
+.mock-bar{background:var(--bg4);border-radius:4px;height:8px;margin:6px 0}
+.mock-label{font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px}
+.tag{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-family:var(--mono)}
+
+/* NAV BUTTONS */
+.nav-btns{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s;font-family:var(--sans)}
+.btn-primary{background:var(--green);color:#000;border-color:var(--green)}.btn-primary:hover{background:var(--green2)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border2)}.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.btn-complete{background:var(--green3);color:var(--green);border-color:var(--green2);width:100%}
+.btn-complete:hover{background:#004d33}
+
+/* PULSE */
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite;margin-right:5px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* FEATURE OVERVIEW GRID */
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.feature-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.feature-icon{font-size:20px;margin-bottom:8px}
+.feature-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.feature-desc{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* WORKFLOW FLOW */
+.flow{display:flex;flex-direction:column;gap:0}
+.flow-item{display:flex;gap:14px;padding:14px 0}
+.flow-left{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.flow-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--mono);font-weight:600;flex-shrink:0;border:1px solid}
+.flow-line{width:1px;flex:1;background:var(--border);margin-top:4px}
+.flow-body{flex:1;padding-top:2px}
+.flow-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.flow-desc{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* CONGRATS */
+.congrats{text-align:center;padding:40px 20px}
+.congrats-icon{font-size:64px;margin-bottom:20px}
+.congrats-title{font-size:32px;font-weight:700;letter-spacing:-.03em;margin-bottom:12px}
+.congrats-desc{font-size:15px;color:var(--text2);line-height:1.7;max-width:480px;margin:0 auto 24px}
+.checklist-summary{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:left;margin:0 auto 24px;max-width:420px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- LEFT NAV -->
+<div class="left-nav">
+  <div class="nav-logo">
+    <div style="font-size:10px;font-family:var(--mono);color:var(--green);letter-spacing:.1em;margin-bottom:4px"><span class="pulse"></span>SETUP GUIDE</div>
+    <div class="nav-logo-title">Foreclosure OS v2</div>
+    <div class="nav-logo-sub">Step-by-step onboarding</div>
+  </div>
+  <div class="nav-progress">
+    <div class="progress-label">Your Progress</div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+    <div class="progress-text" id="progress-text">0 of 7 phases complete</div>
+  </div>
+  <div class="nav-sections">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-step active" id="nav-0" onclick="goTo(0)">
+      <div class="step-dot">◈</div>
+      <div class="step-label">What You're Building</div>
+    </div>
+    <div class="nav-section-label">Phase 1 — Security</div>
+    <div class="nav-step" id="nav-1" onclick="goTo(1)">
+      <div class="step-dot">1</div>
+      <div class="step-label">Fix Exposed API Keys</div>
+    </div>
+    <div class="nav-section-label">Phase 2 — Database</div>
+    <div class="nav-step" id="nav-2" onclick="goTo(2)">
+      <div class="step-dot">2</div>
+      <div class="step-label">Set Up Airtable</div>
+    </div>
+    <div class="nav-section-label">Phase 3 — Automation</div>
+    <div class="nav-step" id="nav-3" onclick="goTo(3)">
+      <div class="step-dot">3</div>
+      <div class="step-label">Connect Make.com</div>
+    </div>
+    <div class="nav-section-label">Phase 4 — SMS & AI</div>
+    <div class="nav-step" id="nav-4" onclick="goTo(4)">
+      <div class="step-dot">4</div>
+      <div class="step-label">Twilio + OpenAI Setup</div>
+    </div>
+    <div class="nav-section-label">Phase 5 — Dashboard</div>
+    <div class="nav-step" id="nav-5" onclick="goTo(5)">
+      <div class="step-dot">5</div>
+      <div class="step-label">Connect Your Dashboard</div>
+    </div>
+    <div class="nav-section-label">Phase 6 — Tools</div>
+    <div class="nav-step" id="nav-6" onclick="goTo(6)">
+      <div class="step-dot">6</div>
+      <div class="step-label">Use All 5 New Features</div>
+    </div>
+    <div class="nav-section-label">Phase 7 — Go Live</div>
+    <div class="nav-step" id="nav-7" onclick="goTo(7)">
+      <div class="step-dot">7</div>
+      <div class="step-label">First Deal Checklist</div>
+    </div>
+  </div>
+  <div class="nav-footer">
+    <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">Est. total setup time</div>
+    <div style="font-size:16px;font-weight:600;color:var(--amber);margin-top:2px">~3–4 hours</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ═══ SECTION 0: OVERVIEW ═══ -->
+<div class="section active" id="section-0">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--purple3);border:1px solid var(--purple);color:var(--purple)">◈ Overview</div>
+    <div class="section-title">What You're Building</div>
+    <div class="section-desc">Your Foreclosure OS v2 is a fully automated deal machine — from courthouse data to closed deals, with AI negotiating for you 24/7. Here's the complete picture before you start.</div>
+    <div class="time-badge">⏱ Read time: 3 min</div>
+  </div>
+
+  <div class="tip-box">
+    <span class="tip-icon">💡</span>
+    <strong>You already have 80% of this built.</strong> Your server.js has the AI SMS system working. We just need to secure it, connect the database, and wire up the new dashboard features.
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">◆</div>
+      <div class="feature-title">MAO Calculator</div>
+      <div class="feature-desc">Auto-calculates your maximum offer for Flip, Rental, Wholesale & BRRRR strategies with live profit breakdown.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">★</div>
+      <div class="feature-title">Deal Ranking</div>
+      <div class="feature-desc">Every deal auto-scored 0–100 based on equity, urgency, profit margin & strategy. Sort and filter instantly.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">◎</div>
+      <div class="feature-title">AI Negotiation</div>
+      <div class="feature-desc">Claude classifies seller intent (HOT/WARM/COLD) and generates reply SMS scripts for every conversation.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">$</div>
+      <div class="feature-title">Profit Dashboard</div>
+      <div class="feature-desc">Total pipeline value, P&L charts, ROI by strategy, and top deals by profit — all in one view.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⬡</div>
+      <div class="feature-title">Intelligence System</div>
+      <div class="feature-desc">Market heat maps, competitor bid tracking, live intel feed, and AI-generated market summaries.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⟳</div>
+      <div class="feature-title">Full Automation</div>
+      <div class="feature-desc">9 Make.com scenarios run 24/7 — ingest, score, alert, negotiate, track, and report automatically.</div>
+    </div>
+  </div>
+
+  <div style="margin:24px 0 12px;font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)">How the full system flows</div>
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--blue3);border-color:var(--blue2);color:var(--blue)">1</div><div class="flow-line"></div></div>
+      <div class="flow-body"><div class="flow-title">Data Ingest (6am daily)</div><div class="flow-desc">ATTOM API + PropertyRadar pull all new NOD/NTS/REO filings in your target states → write to Airtable</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--blue3);border-color:var(--blue2);color:var(--blue)">2</div><div class="flow-line"></div></div>
+      <div class="flow-body"><div class="flow-title">Auto-Filter + MAO Calculate</div><div class="flow-desc">Buy-box filter runs instantly → qualified deals get MAO calculated by strategy → written back to Airtable</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--amber3);border-color:var(--amber2);color:var(--amber)">3</div><div class="flow-line"></div></div>
+      <div class="flow-body"><div class="flow-title">Score + Rank</div><div class="flow-desc">Every deal scored 0–100 → Deal Ranking system updates live → HOT deals (≥75) trigger immediate alerts</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--red3);border-color:var(--red);color:var(--red)">4</div><div class="flow-line"></div></div>
+      <div class="flow-body"><div class="flow-title">Alert + AI SMS (HOT deals)</div><div class="flow-desc">You get SMS + Slack alert → AI sends opener text to homeowner → replies auto-classified HOT/WARM/COLD</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--green3);border-color:var(--green2);color:var(--green)">5</div><div class="flow-line"></div></div>
+      <div class="flow-body"><div class="flow-title">Due Diligence + Auction Monitor</div><div class="flow-desc">Auto-pull tax records, flood zone, comps → package as deal memo → PropertyRadar monitors every 15 min day-of</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--purple3);border-color:var(--purple);color:var(--purple)">6</div></div>
+      <div class="flow-body"><div class="flow-title">Won → Profit Dashboard</div><div class="flow-desc">Deal marked Won → Notion tasks auto-created → Profit Dashboard updates → monthly intelligence report generated</div></div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-primary" onclick="goTo(1)">Start Setup → Fix Security First</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 1: SECURITY ═══ -->
+<div class="section" id="section-1">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--red3);border:1px solid var(--red);color:var(--red)">⚠ Phase 1 — Critical</div>
+    <div class="section-title">Fix Exposed API Keys</div>
+    <div class="section-desc">Your server.js file has live credentials hardcoded. Do this before anything else — exposed keys can be stolen and used to rack up charges on your accounts.</div>
+    <div class="time-badge">⏱ ~20 minutes</div>
+  </div>
+
+  <div class="danger-box">
+    <strong style="color:var(--red)">🔴 Keys currently exposed in your server.js:</strong><br>
+    • OpenAI key: <code style="color:var(--amber)">sk-proj-ToOYruI44j4...</code><br>
+    • Twilio Account SID: <code style="color:var(--amber)">PN7460ae936a1b87e81c...</code><br>
+    • Twilio Auth Token: <code style="color:var(--amber)">81293dae893e5e26da6bc...</code><br>
+    • Twilio Phone: <code style="color:var(--amber)">+19784402068</code><br>
+    • Supabase URL + Key (hardcoded)
+  </div>
+
+  <div class="step-card expanded" id="card-1-1">
+    <div class="step-card-header" onclick="toggleCard('card-1-1')">
+      <div class="step-num">1</div>
+      <div class="step-card-title">Rotate your OpenAI key</div>
+      <div class="step-card-status" style="color:var(--red)">Required</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Go to OpenAI Platform</div>
+            <div class="instr-desc">Open <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--blue)">platform.openai.com/api-keys</a> → sign in</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Delete the old key</div>
+            <div class="instr-desc">Find the key starting with <code style="color:var(--amber)">sk-proj-ToOY...</code> → click the trash icon → confirm deletion</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Create a new key</div>
+            <div class="instr-desc">Click <strong>"+ Create new secret key"</strong> → name it "foreclosure-os-prod" → copy it immediately (you only see it once)</div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">💡</span>Save the new key in a password manager (1Password, Bitwarden) immediately. You will not see it again.</div>
+        <a href="https://platform.openai.com/api-keys" target="_blank" class="link-btn">↗ Open OpenAI Keys</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-1-2">
+    <div class="step-card-header" onclick="toggleCard('card-1-2')">
+      <div class="step-num">2</div>
+      <div class="step-card-title">Rotate your Twilio credentials</div>
+      <div class="step-card-status" style="color:var(--red)">Required</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Go to Twilio Console</div>
+            <div class="instr-desc"><a href="https://console.twilio.com" target="_blank" style="color:var(--blue)">console.twilio.com</a> → Account → API keys & tokens</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Rotate Auth Token</div>
+            <div class="instr-desc">On the main dashboard → click <strong>"Rotate Auth Token"</strong> → confirm. This invalidates the exposed token immediately.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Note your Account SID (it doesn't change)</div>
+            <div class="instr-desc">Your Account SID <code style="color:var(--amber)">PN7460ae...</code> is the account identifier — it's not a secret, but don't share it publicly going forward.</div>
+          </div>
+        </div>
+        <a href="https://console.twilio.com" target="_blank" class="link-btn">↗ Open Twilio Console</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-1-3">
+    <div class="step-card-header" onclick="toggleCard('card-1-3')">
+      <div class="step-num">3</div>
+      <div class="step-card-title">Create a .env file and update server.js</div>
+      <div class="step-card-status" style="color:var(--amber)">Required</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Create .env in your project root</div>
+            <div class="instr-desc">In the same folder as server.js, create a new file named <code style="color:var(--green)">.env</code> (just that, no extension):</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <span class="comment"># .env — NEVER commit this file to Git</span><br>
+              <span class="key">OPENAI_API_KEY</span>=<span class="val">sk-proj-YOUR-NEW-KEY-HERE</span><br>
+              <span class="key">TWILIO_ACCOUNT_SID</span>=<span class="val">PN7460ae936a1b87e81c0482263710050e</span><br>
+              <span class="key">TWILIO_AUTH_TOKEN</span>=<span class="val">YOUR-NEW-ROTATED-TOKEN</span><br>
+              <span class="key">TWILIO_PHONE</span>=<span class="val">+19784402068</span><br>
+              <span class="key">SUPABASE_URL</span>=<span class="val">https://your-project.supabase.co</span><br>
+              <span class="key">SUPABASE_KEY</span>=<span class="val">your-supabase-anon-key</span>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Install dotenv and update server.js</div>
+            <div class="instr-desc">Run in your terminal:</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <span class="cmd">npm install dotenv</span>
+            </div>
+            <div class="instr-desc">Then add this as the VERY FIRST line of server.js:</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <span class="cmd">require('dotenv').config();</span>
+            </div>
+            <div class="instr-desc">Then replace all hardcoded values:</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              <span class="comment">// Replace hardcoded OpenAI key</span><br>
+              <span class="key">apiKey</span>: <span class="val">process.env.OPENAI_API_KEY</span><br><br>
+              <span class="comment">// Replace hardcoded Twilio credentials</span><br>
+              <span class="cmd">const client = twilio(</span><br>
+              &nbsp;&nbsp;<span class="val">process.env.TWILIO_ACCOUNT_SID</span>,<br>
+              &nbsp;&nbsp;<span class="val">process.env.TWILIO_AUTH_TOKEN</span><br>
+              <span class="cmd">)</span><br><br>
+              <span class="comment">// Replace hardcoded phone number</span><br>
+              <span class="key">from</span>: <span class="val">process.env.TWILIO_PHONE</span>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Add .env to .gitignore</div>
+            <div class="instr-desc">Open (or create) <code style="color:var(--green)">.gitignore</code> and add:</div>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              .env<br>
+              .env.local<br>
+              node_modules/
+            </div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">✓</span>Once done, your keys are safe. Even if someone sees your server.js, they can't get credentials.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(0)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(1)">✓ Security Fixed — Next: Airtable →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 2: AIRTABLE ═══ -->
+<div class="section" id="section-2">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--blue3);border:1px solid var(--blue2);color:var(--blue)">◈ Phase 2 — Database</div>
+    <div class="section-title">Set Up Airtable</div>
+    <div class="section-desc">Airtable is the central database for all your deals. Everything flows through it — ingest, scoring, alerts, pipeline, and profit tracking.</div>
+    <div class="time-badge">⏱ ~30 minutes</div>
+  </div>
+
+  <div class="step-card expanded" id="card-2-1">
+    <div class="step-card-header" onclick="toggleCard('card-2-1')">
+      <div class="step-num">1</div>
+      <div class="step-card-title">Create your Airtable account & base</div>
+      <div class="step-card-status" style="color:var(--blue)">Start here</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Sign up / log in to Airtable</div>
+            <div class="instr-desc">Go to <a href="https://airtable.com" target="_blank" style="color:var(--blue)">airtable.com</a> → sign up free (Plus plan at $20/mo recommended for automation volume)</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Create a new base</div>
+            <div class="instr-desc">Click <strong>"+ Add a base"</strong> → <strong>"Start from scratch"</strong> → name it <strong>"Foreclosure OS"</strong></div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Get your Base ID</div>
+            <div class="instr-desc">Look at the URL: <code style="color:var(--amber)">airtable.com/<strong style="color:var(--green)">appXXXXXXXXXXXXX</strong>/...</code> — copy the part starting with "app". That's your Base ID.</div>
+          </div>
+        </div>
+        <a href="https://airtable.com" target="_blank" class="link-btn">↗ Open Airtable</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-2-2">
+    <div class="step-card-header" onclick="toggleCard('card-2-2')">
+      <div class="step-num">2</div>
+      <div class="step-card-title">Create the 3 required tables</div>
+      <div class="step-card-status" style="color:var(--amber)">Important</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="tip-box"><span class="tip-icon">⚠</span>Table names must match exactly — the dashboard and Make.com look for these exact names.</div>
+
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Table 1: "Raw Leads"</div>
+            <div class="instr-desc">Rename the default table to <strong>Raw Leads</strong>. Add these fields:</div>
+            <div class="code-block" style="line-height:2">
+              <span class="key">Property Address</span> → <span class="val">Single line text</span><br>
+              <span class="key">City</span> → <span class="val">Single line text</span><br>
+              <span class="key">State</span> → <span class="val">Single line text</span><br>
+              <span class="key">County</span> → <span class="val">Single line text</span><br>
+              <span class="key">Opening Bid ($)</span> → <span class="val">Currency</span><br>
+              <span class="key">AVM Estimate ($)</span> → <span class="val">Currency</span><br>
+              <span class="key">Sale Date</span> → <span class="val">Date</span><br>
+              <span class="key">Foreclosure Stage</span> → <span class="val">Single select: NOD, NTS, REO</span><br>
+              <span class="key">Source</span> → <span class="val">Single line text</span><br>
+              <span class="key">Created</span> → <span class="val">Created time (auto)</span>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Table 2: "Qualified Leads"</div>
+            <div class="instr-desc">Add a new table named exactly <strong>Qualified Leads</strong>. Add all Raw Lead fields, plus:</div>
+            <div class="code-block" style="line-height:2">
+              <span class="key">Score</span> → <span class="val">Number (0–100)</span><br>
+              <span class="key">MAO</span> → <span class="val">Currency</span><br>
+              <span class="key">Equity %</span> → <span class="val">Percent</span><br>
+              <span class="key">Days to Sale</span> → <span class="val">Number</span><br>
+              <span class="key">Alert Sent?</span> → <span class="val">Checkbox</span><br>
+              <span class="key">Phone</span> → <span class="val">Phone number</span><br>
+              <span class="key">Lead Status</span> → <span class="val">Single select: HOT, WARM, COLD, NEW</span><br>
+              <span class="key">Replied</span> → <span class="val">Checkbox</span>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Table 3: "Active Pipeline"</div>
+            <div class="instr-desc">Add a new table named <strong>Active Pipeline</strong>. Add all Qualified Lead fields, plus:</div>
+            <div class="code-block" style="line-height:2">
+              <span class="key">Pipeline Stage</span> → <span class="val">Single select: Monitoring, Notice of Sale, Auction Pending, Under Review, Won, Dead</span><br>
+              <span class="key">Strategy</span> → <span class="val">Single select: Flip, Rental, Wholesale, BRRRR</span><br>
+              <span class="key">ARV ($)</span> → <span class="val">Currency</span><br>
+              <span class="key">Rehab ($)</span> → <span class="val">Currency</span><br>
+              <span class="key">Est Profit</span> → <span class="val">Currency</span><br>
+              <span class="key">ROI %</span> → <span class="val">Percent</span><br>
+              <span class="key">Assigned To</span> → <span class="val">Single line text</span><br>
+              <span class="key">Notes</span> → <span class="val">Long text</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-2-3">
+    <div class="step-card-header" onclick="toggleCard('card-2-3')">
+      <div class="step-num">3</div>
+      <div class="step-card-title">Generate your API token</div>
+      <div class="step-card-status" style="color:var(--green)">Quick</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Go to your Airtable account settings</div>
+            <div class="instr-desc"><a href="https://airtable.com/account" target="_blank" style="color:var(--blue)">airtable.com/account</a> → scroll to <strong>API</strong> section → click <strong>"Generate API token"</strong></div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Name it and set permissions</div>
+            <div class="instr-desc">Name: <strong>foreclosure-os</strong> → Scope: <strong>data.records:read</strong> and <strong>data.records:write</strong> → Access: your Foreclosure OS base only</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Copy the token (starts with "pat")</div>
+            <div class="instr-desc">You'll use this in both the dashboard and Make.com. Save it in your .env file and password manager.</div>
+          </div>
+        </div>
+        <a href="https://airtable.com/account" target="_blank" class="link-btn">↗ Open Airtable Account</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(1)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(2)">✓ Airtable Ready — Next: Make.com →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 3: MAKE.COM ═══ -->
+<div class="section" id="section-3">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--purple3);border:1px solid var(--purple);color:var(--purple)">⟳ Phase 3 — Automation</div>
+    <div class="section-title">Connect Make.com</div>
+    <div class="section-desc">Make.com is the automation engine that runs everything on a schedule — ingesting data, scoring deals, firing alerts, and triggering your AI SMS system.</div>
+    <div class="time-badge">⏱ ~60–90 minutes</div>
+  </div>
+
+  <div class="tip-box"><span class="tip-icon">💡</span>Make.com's Pro plan ($29/mo) supports 10,000 operations/month — plenty for this system at launch.</div>
+
+  <div class="step-card expanded" id="card-3-1">
+    <div class="step-card-header" onclick="toggleCard('card-3-1')">
+      <div class="step-num">1</div>
+      <div class="step-card-title">Set up Make.com account & connections</div>
+      <div class="step-card-status">First</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Sign up for Make.com Pro</div>
+            <div class="instr-desc"><a href="https://make.com" target="_blank" style="color:var(--blue)">make.com</a> → sign up → upgrade to Pro ($29/mo)</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Connect Airtable</div>
+            <div class="instr-desc">Go to <strong>Connections</strong> → <strong>+ Add connection</strong> → search "Airtable" → paste your API token → test & save</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Connect Twilio</div>
+            <div class="instr-desc">Add connection → search "Twilio" → enter Account SID + Auth Token → save</div>
+          </div>
+        </div>
+        <a href="https://make.com" target="_blank" class="link-btn">↗ Open Make.com</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-3-2">
+    <div class="step-card-header" onclick="toggleCard('card-3-2')">
+      <div class="step-num">2</div>
+      <div class="step-card-title">Build Scenario 1 — Daily Ingest (6am)</div>
+      <div class="step-card-status" style="color:var(--blue)">Core</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Create new scenario → add Schedule trigger</div>
+            <div class="instr-desc">Click <strong>"+ Create a new scenario"</strong> → first module: <strong>Schedule</strong> → set to run daily at <strong>6:00 AM</strong> your timezone</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Add HTTP module → call ATTOM API</div>
+            <div class="instr-desc">Add module: <strong>HTTP → Make a request</strong><br>
+              URL: <code style="color:var(--green)">https://api.gateway.attomdata.com/propertyapi/v1.0.0/assessment/foreclosure</code><br>
+              Method: GET<br>
+              Headers: <code style="color:var(--amber)">apikey: YOUR-ATTOM-KEY</code><br>
+              Query: <code style="color:var(--amber)">state=AZ,FL,TX&status=NTS</code>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Add Airtable module → Create Record</div>
+            <div class="instr-desc">Add module: <strong>Airtable → Create a Record</strong> → select your base → table: <strong>Raw Leads</strong> → map ATTOM fields to Airtable columns</div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">💡</span>ATTOM API: get your key at <a href="https://www.attomdata.com" target="_blank" style="color:var(--blue)">attomdata.com</a>. Starts at ~$200/mo for the foreclosure data feed.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-3-3">
+    <div class="step-card-header" onclick="toggleCard('card-3-3')">
+      <div class="step-num">3</div>
+      <div class="step-card-title">Build Scenario 2 — Score & Alert</div>
+      <div class="step-card-status" style="color:var(--red)">Most Important</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Trigger: Airtable → Watch Records (Raw Leads)</div>
+            <div class="instr-desc">This scenario fires every time a new Raw Lead is created. Trigger: <strong>Airtable → Watch Records</strong> → table: Raw Leads</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Add Router → Buy-Box Filter</div>
+            <div class="instr-desc">Add <strong>Router</strong> module → Route 1 condition: <br>
+              <code style="color:var(--green)">State IN (AZ, FL, TX, NV, GA, NC)</code> AND <code style="color:var(--green)">Equity % ≥ 20</code> AND <code style="color:var(--green)">Days to Sale ≤ 45</code>
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Add Math → Calculate Score</div>
+            <div class="instr-desc">Use <strong>Tools → Set multiple variables</strong> to calculate:<br>
+              <code style="color:var(--green)">score = (equity_pct * 0.4) + (urgency_pts) + (profit_margin * 0.25)</code><br>
+              Then write score + move record to <strong>Qualified Leads</strong> table</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Add condition: if Score ≥ 75 → Alert</div>
+            <div class="instr-desc">Add <strong>Filter</strong>: Score ≥ 75 → then add <strong>Twilio → Send SMS</strong> to your number with deal summary</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(2)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(3)">✓ Make.com Ready — Next: SMS & AI →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 4: TWILIO + OPENAI ═══ -->
+<div class="section" id="section-4">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--red3);border:1px solid var(--red2);color:var(--red)">◎ Phase 4 — SMS & AI</div>
+    <div class="section-title">Twilio + OpenAI Setup</div>
+    <div class="section-desc">Your server.js already has the AI SMS reply system built. You just need to deploy it live so Twilio can route incoming seller texts to it.</div>
+    <div class="time-badge">⏱ ~30 minutes</div>
+  </div>
+
+  <div class="step-card expanded" id="card-4-1">
+    <div class="step-card-header" onclick="toggleCard('card-4-1')">
+      <div class="step-num">1</div>
+      <div class="step-card-title">Deploy server.js to the internet</div>
+      <div class="step-card-status" style="color:var(--blue)">Required</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="tip-box"><span class="tip-icon">💡</span>Your server.js runs locally right now. Twilio needs a public URL to send incoming SMS to it. Use Railway — it's the easiest free option.</div>
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Deploy to Railway (free, ~5 min)</div>
+            <div class="instr-desc">Go to <a href="https://railway.app" target="_blank" style="color:var(--blue)">railway.app</a> → sign in with GitHub → <strong>"New Project"</strong> → <strong>"Deploy from GitHub repo"</strong> → select your repo</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Add your environment variables</div>
+            <div class="instr-desc">In Railway: go to your service → <strong>Variables</strong> tab → add all 6 variables from your .env file</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Get your public URL</div>
+            <div class="instr-desc">After deploy: Settings → Domains → copy your URL: <code style="color:var(--green)">https://your-app.railway.app</code></div>
+          </div>
+        </div>
+        <a href="https://railway.app" target="_blank" class="link-btn">↗ Open Railway</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-4-2">
+    <div class="step-card-header" onclick="toggleCard('card-4-2')">
+      <div class="step-num">2</div>
+      <div class="step-card-title">Point Twilio webhook to your server</div>
+      <div class="step-card-status" style="color:var(--amber)">Key step</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Go to Twilio phone numbers</div>
+            <div class="instr-desc"><a href="https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" target="_blank" style="color:var(--blue)">console.twilio.com</a> → Phone Numbers → Manage → Active Numbers → click +19784402068</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Set the webhook URL</div>
+            <div class="instr-desc">Under <strong>Messaging</strong> → <strong>"When a message comes in"</strong> → paste your Railway URL + <code style="color:var(--green)">/webhook</code>:<br>
+              <code style="color:var(--green)">https://your-app.railway.app/webhook</code><br>
+              Method: <strong>POST</strong></div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Test it</div>
+            <div class="instr-desc">Text your Twilio number from your personal phone. You should get an AI-generated reply within 5 seconds.</div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">✓</span>When a seller replies to your outbound SMS, Twilio → server.js → GPT-4 classifies intent → auto-replies → Supabase/Airtable updates HOT/WARM/COLD status.</div>
+        <a href="https://console.twilio.com" target="_blank" class="link-btn">↗ Open Twilio Console</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(3)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(4)">✓ SMS & AI Live — Next: Dashboard →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 5: DASHBOARD ═══ -->
+<div class="section" id="section-5">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--green3);border:1px solid var(--green2);color:var(--green)">◈ Phase 5 — Dashboard</div>
+    <div class="section-title">Connect Your Dashboard</div>
+    <div class="section-desc">Now wire the Foreclosure OS v2 HTML file to your live Airtable data. This is the easiest step — just two fields.</div>
+    <div class="time-badge">⏱ ~5 minutes</div>
+  </div>
+
+  <div class="step-card expanded" id="card-5-1">
+    <div class="step-card-header" onclick="toggleCard('card-5-1')">
+      <div class="step-num">1</div>
+      <div class="step-card-title">Open the dashboard and go to "Connect Airtable"</div>
+      <div class="step-card-status" style="color:var(--green)">Easy</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Open foreclosure_os_v2.html in your browser</div>
+            <div class="instr-desc">Double-click the file to open it locally, or host it on any static host (Netlify, GitHub Pages). No server needed for the dashboard itself.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Click "Connect Airtable" in the left sidebar</div>
+            <div class="instr-desc">It's the last item in the sidebar. You'll see the connection form.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Enter your two credentials</div>
+            <div class="instr-desc">
+              <strong>Airtable API Token:</strong> the <code style="color:var(--green)">pat...</code> token you generated<br>
+              <strong>Airtable Base ID:</strong> the <code style="color:var(--green)">app...</code> ID from your base URL
+            </div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Click "Test Connection" then "Save & Connect"</div>
+            <div class="instr-desc">You should see <span style="color:var(--green)">✓ Connected successfully</span>. The dashboard header will turn green. Go to Dashboard — your live deal counts appear instantly.</div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">💡</span>Your credentials are saved in browser localStorage — only on your computer. They're never sent anywhere except directly to Airtable's API.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(4)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(5)">✓ Dashboard Live — Next: Learn the Features →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 6: USING THE FEATURES ═══ -->
+<div class="section" id="section-6">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--purple3);border:1px solid var(--purple);color:var(--purple)">★ Phase 6 — Tools</div>
+    <div class="section-title">Use All 5 New Features</div>
+    <div class="section-desc">Here's exactly how to use each new tool added in v2 — start to finish.</div>
+    <div class="time-badge">⏱ Read time: 10 min</div>
+  </div>
+
+  <div class="step-card expanded" id="card-6-1">
+    <div class="step-card-header" onclick="toggleCard('card-6-1')">
+      <div class="step-num">◆</div>
+      <div class="step-card-title">MAO Calculator — How to use it</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Pick your strategy first</div>
+            <div class="instr-desc">Click one of the 4 tabs at top: <strong>Fix & Flip</strong>, <strong>Buy & Hold</strong>, <strong>Wholesale</strong>, or <strong>BRRRR</strong>. The form adapts to show only the relevant fields.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Enter the 3 key numbers</div>
+            <div class="instr-desc"><strong>ARV</strong> (what it's worth fixed up) · <strong>Opening Bid</strong> (what you'd pay at auction) · <strong>AVM</strong> (current estimated value). MAO calculates instantly.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Adjust sliders to model scenarios</div>
+            <div class="instr-desc">Drag the Rehab, Margin, Closing, and Holding sliders. The right panel updates live with your MAO, bid comparison, and profit estimate.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Check the "Scenario Comparison" at bottom right</div>
+            <div class="instr-desc">It shows MAO for all 4 strategies side by side — instantly see if the deal is better as a flip vs rental.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">5</div>
+          <div class="instr-body">
+            <div class="instr-title">Send to Ranking with one click</div>
+            <div class="instr-desc">Click <strong>"→ Send to Ranking"</strong> — the deal appears in your Deal Ranking table, auto-scored, ready to compare against others.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-6-2">
+    <div class="step-card-header" onclick="toggleCard('card-6-2')">
+      <div class="step-num">★</div>
+      <div class="step-card-title">Deal Ranking — How to use it</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Deals auto-populate from demo data</div>
+            <div class="instr-desc">8 demo deals are preloaded so you can see the system immediately. When Airtable is connected, your live deals will replace these.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Filter by intent</div>
+            <div class="instr-desc">Click <strong>🔴 HOT</strong>, <strong>🟡 WARM</strong>, or <strong>🔵 WATCH</strong> chips to filter. HOT = score ≥ 85. Those are your priority deals.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Sort by what matters today</div>
+            <div class="instr-desc">Use the sort dropdown: <strong>Days to Sale</strong> when you need to act fast. <strong>Est. Profit</strong> to focus on biggest upside. <strong>ROI</strong> for capital efficiency.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Use the action buttons on each row</div>
+            <div class="instr-desc"><strong>MAO</strong> → instantly loads deal into the calculator. <strong>Nego</strong> → loads deal into the AI Negotiation assistant with property context pre-filled.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">5</div>
+          <div class="instr-body">
+            <div class="instr-title">Add custom deals with + Add Deal</div>
+            <div class="instr-desc">Click the green button → fill in the form → system auto-scores it and drops it into the ranked list.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-6-3">
+    <div class="step-card-header" onclick="toggleCard('card-6-3')">
+      <div class="step-num">◎</div>
+      <div class="step-card-title">AI Negotiation Assistant — How to use it</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Load a property first</div>
+            <div class="instr-desc">Click <strong>"Load Demo"</strong> to see a preloaded property, or hit <strong>"Nego"</strong> from Deal Ranking to load a real deal. Property stats populate the left panel.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Paste the seller's incoming SMS</div>
+            <div class="instr-desc">When a seller texts back, paste their exact message into the chat box and press <strong>Send</strong> (or Enter). The AI coach instantly classifies their intent and gives you a reply script.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Read the Intent badge</div>
+            <div class="instr-desc">Top right of the chat shows <strong>🔴 HOT / 🟡 WARM / ⚪ COLD</strong>. HOT = call them immediately. Warm = follow up in 48 hours. Cold = pause outreach.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Use the pre-built scripts on the left</div>
+            <div class="instr-desc">The left sidebar has 3 scripts: <strong>Opener</strong> (first contact) · <strong>Price Anchor</strong> (includes your MAO) · <strong>Cold Re-engagement</strong>. Click copy and send via Twilio or your phone.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">5</div>
+          <div class="instr-body">
+            <div class="instr-title">Use the "Suggest" chips for coaching</div>
+            <div class="instr-desc">Bottom bar has <strong>Opener · Follow-up · Close</strong> chips. Click them to get a coaching message from the AI with specific language for that stage.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-6-4">
+    <div class="step-card-header" onclick="toggleCard('card-6-4')">
+      <div class="step-num">$</div>
+      <div class="step-card-title">Profit Dashboard — What to look at</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Switch periods at top right</div>
+            <div class="instr-desc">Toggle between <strong>MTD / QTD / YTD / All Time</strong>. All 8 metric cards update instantly.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Check ROI by Strategy chart</div>
+            <div class="instr-desc">This tells you which strategy is performing best for you. Wholesale often wins on ROI %. Flip wins on absolute dollars. Adjust your buy-box based on this.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Use "Top Deals by Profit" as your priority list</div>
+            <div class="instr-desc">The 5 highest-profit deals are listed. Cross-reference with the Ranking system to make sure you're spending time on the right ones.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Pipeline Value Breakdown</div>
+            <div class="instr-desc">The bar chart shows dollar value locked in each stage. If too much is sitting in "Under Review" — push those deals to a decision. Time kills deals.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-6-5">
+    <div class="step-card-header" onclick="toggleCard('card-6-5')">
+      <div class="step-num">⬡</div>
+      <div class="step-card-title">Intelligence System — Daily routine</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Check the Heat Map first thing each morning</div>
+            <div class="instr-desc">Red states = highest activity and most opportunity. Hover any state cell to see starts, REOs, and score. Focus your outreach on red/orange states.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">Read the Intelligence Feed</div>
+            <div class="instr-desc">Six market signals updated regularly. URGENT tags = act now. OPPORTUNITY = competitor pulling back. COMPETITOR = adjust your bids.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Watch the Competitor Activity bars</div>
+            <div class="instr-desc">If Invitation Homes or Progress Residential activity rises, you'll be outbid. Shift to smaller markets (under $300k) or different counties where they're not active.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">Read the AI Market Summary</div>
+            <div class="instr-desc">Generated by Claude using current market data. Click <strong>"↻ Regenerate"</strong> any time for a fresh read. Use it to inform your weekly strategy.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(5)">← Back</button>
+    <button class="btn btn-complete" onclick="completeSection(6)">✓ Features Learned — Final Checklist →</button>
+  </div>
+</div>
+
+<!-- ═══ SECTION 7: GO LIVE ═══ -->
+<div class="section" id="section-7">
+  <div class="section-header">
+    <div class="phase-tag" style="background:var(--green3);border:1px solid var(--green);color:var(--green)">🚀 Phase 7 — Go Live</div>
+    <div class="section-title">First Deal Checklist</div>
+    <div class="section-desc">Everything below must be checked before you're fully live. Work through this before your first auction day.</div>
+    <div class="time-badge">⏱ Final verification</div>
+  </div>
+
+  <div class="step-card expanded" id="card-7-1">
+    <div class="step-card-header" onclick="toggleCard('card-7-1')">
+      <div class="step-num">✓</div>
+      <div class="step-card-title">Security checklist</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div id="checks-security">
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Old OpenAI key deleted and new key rotated</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Twilio Auth Token rotated</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">.env file created with all 6 environment variables</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">.env added to .gitignore</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">server.js updated — no hardcoded keys remain</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-7-2">
+    <div class="step-card-header" onclick="toggleCard('card-7-2')">
+      <div class="step-num">✓</div>
+      <div class="step-card-title">Infrastructure checklist</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div id="checks-infra">
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Airtable base created with 3 tables (exact names)</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Airtable API token generated (starts with "pat")</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Make.com Pro account active</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Make.com connected to Airtable + Twilio</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Scenario 1 (Daily Ingest) built and scheduled</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Scenario 2 (Score & Alert) built and active</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">server.js deployed to Railway (or similar)</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Twilio webhook pointing to /webhook URL</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-7-3">
+    <div class="step-card-header" onclick="toggleCard('card-7-3')">
+      <div class="step-num">✓</div>
+      <div class="step-card-title">Dashboard & live test checklist</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div id="checks-dash">
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Dashboard shows "✓ Connected" in top right</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Test: add a manual record to Airtable "Raw Leads" → verify it appears in dashboard Pipeline</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Test: text your Twilio number → verify AI replies within 10 seconds</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">MAO Calculator: enter a real deal and verify numbers match your manual calc</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Set your buy-box in "Connect Airtable" settings (states, equity %, threshold, max days)</span></div>
+          <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox"><span class="check-label">Intelligence: AI Market Summary generates without error</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-card" id="card-7-4">
+    <div class="step-card-header" onclick="toggleCard('card-7-4')">
+      <div class="step-num">✓</div>
+      <div class="step-card-title">First auction day protocol</div>
+    </div>
+    <div class="step-card-body">
+      <div class="step-body-inner">
+        <div class="instruction">
+          <div class="instr-num">1</div>
+          <div class="instr-body">
+            <div class="instr-title">Night before (after 6pm ingest)</div>
+            <div class="instr-desc">Open Deal Ranking → filter HOT → sort by Days to Sale → identify your top 3 targets for tomorrow's courthouse</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">2</div>
+          <div class="instr-body">
+            <div class="instr-title">For each target: run MAO Calculator</div>
+            <div class="instr-desc">Enter all known numbers → set your strategy → note your MAO. This is your hard ceiling. Do not bid above it. Write it on a card if needed.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">3</div>
+          <div class="instr-body">
+            <div class="instr-title">Auction morning: monitor every 15 min</div>
+            <div class="instr-desc">Make.com Scenario 7 polls PropertyRadar every 15 min. Postponements and bid changes will SMS you automatically. Stay calm — let the automation watch it.</div>
+          </div>
+        </div>
+        <div class="instruction">
+          <div class="instr-num">4</div>
+          <div class="instr-body">
+            <div class="instr-title">If you win: trigger Scenario 8 immediately</div>
+            <div class="instr-desc">Change Pipeline Stage to "Won" in Airtable → Make.com auto-creates your Notion checklist, emails title company, and updates your Profit Dashboard.</div>
+          </div>
+        </div>
+        <div class="tip-box"><span class="tip-icon">🎯</span><strong>Golden rule:</strong> Your MAO is your MAO. Auction adrenaline is real. If bidding goes above your calculated number — walk away. The system will find the next deal.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="go-live-footer" style="margin-top:32px;text-align:center">
+    <div style="background:var(--green3);border:1px solid var(--green2);border-radius:12px;padding:28px;margin-bottom:16px">
+      <div style="font-size:32px;margin-bottom:12px">🚀</div>
+      <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px">You're ready to go live.</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;max-width:480px;margin:0 auto">Your Foreclosure OS v2 is a fully automated system. The machine finds deals, scores them, negotiates with sellers, and tracks profit. Your job is to set the strategy and make the final call.</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="completeSection(7)" style="font-size:14px;padding:12px 28px">✓ Mark Complete — I'm Live!</button>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="goTo(6)">← Back</button>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+const TOTAL = 7;
+let completed = new Set();
+
+function goTo(idx) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-step').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + idx).classList.add('active');
+  document.getElementById('nav-' + idx).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function completeSection(idx) {
+  completed.add(idx);
+  document.getElementById('nav-' + idx).classList.add('done');
+  updateProgress();
+  if (idx < TOTAL) goTo(idx + 1);
+}
+
+function updateProgress() {
+  const pct = Math.round((completed.size / TOTAL) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = completed.size + ' of ' + TOTAL + ' phases complete';
+}
+
+function toggleCard(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('expanded');
+}
+
+function toggleCheck(item) {
+  const cb = item.querySelector('input[type=checkbox]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+}
+
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const text = block.innerText.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).catch(() => {});
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+
+// Expand first card in each section on load
+document.querySelectorAll('.step-card:first-of-type').forEach(c => c.classList.add('expanded'));
+</script>
+</body>
+</html>
